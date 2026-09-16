@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environments (Manajemen Paket & Virtual Environment)
+.venv/
+env/
+venv/
+ENV/
+
+# File Rahasia & Konfigurasi Lokal (SANGAT PENTING)
+.env
+.env.production
+.env.development
+.env.example
+!.env.example # Kecualikan file contoh agar tim lain tahu variabel apa saja yang dibutuhkan
+
+# Data lokal (Karena Cloud Run bersifat sementara/ephemeral)
+data/
+files/
+.files/
+evaluation/
+
+# Mac OS files
+.DS_Store
