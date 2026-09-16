@@ -43,4 +43,4 @@ FROM base AS frontend
 
 # Jalankan Chainlit mengikat ke port dinamis Cloud Run.
 # Parameter --headless wajib agar kontainer tidak mencoba membuka browser di dalam server.
-CMD ["sh", "-c", "chainlit run ui/app_chainlit.py --host 0.0.0.0 --port $PORT --headless"]
+CMD ["sh", "-c", "chainlit run ui/app_chainlit.py --host 0.0.0.0 --port ${PORT:-8080} --headless"]
