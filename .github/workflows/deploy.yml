@@ -8,7 +8,7 @@ on:
 env:
   PROJECT_ID: "project-0cb13828-a08a-466a-934"
   REGION: "asia-southeast2"
-  GAR_REPO: "legal-rag-repo"
+  GAR_REPO: "legal-rag-assistant"
 
 jobs:
   deploy:
@@ -33,10 +33,10 @@ jobs:
           audience: 'https://iam.googleapis.com/projects/352692367446/locations/global/workloadIdentityPools/github-pool-v2/providers/github-provider-v2'
 
       - name: Log in to Artifact Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGION }}-docker.pkg.dev
-          username: '_json_key_base64'
+          username: oauth2accesstoken
           password: ${{ steps.auth.outputs.access_token }}
 
       # ==============================================================================
