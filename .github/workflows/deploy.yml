@@ -36,7 +36,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGION }}-docker.pkg.dev
-          username: 'oauth2access'
+          username: '_json_key_base64'
           password: ${{ steps.auth.outputs.access_token }}
 
       # ==============================================================================
