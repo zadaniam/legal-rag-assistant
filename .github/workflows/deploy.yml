@@ -56,7 +56,7 @@ jobs:
           service: legal-rag-backend
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/backend:${{ github.sha }}
-          flags: '--allow-unauthenticated'
+          flags: '--no-allow-unauthenticated'
           env_vars: |
             APP_ENV=${{ vars.ENVIRONMENT }}
             LOG_LEVEL=${{ vars.LOG_LEVEL }}
@@ -84,7 +84,7 @@ jobs:
           service: legal-rag-frontend
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/frontend:${{ github.sha }}
-          flags: '--allow-unauthenticated'
+          flags: '--no-allow-unauthenticated'
           env_vars: |
             APP_ENV=${{ vars.ENVIRONMENT }}
             FASTAPI_CHAT_URL=${{ steps.deploy-backend.outputs.url }}/api/v1/chat
