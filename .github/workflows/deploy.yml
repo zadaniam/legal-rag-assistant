@@ -28,8 +28,9 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
-          workload_identity_provider: 'projects/352692367446/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
-          service_account: 'github-deployer@://gserviceaccount.com'
+          workload_identity_provider: 'projects/352692367446/locations/global/workloadIdentityPools/github-pool-v2/providers/github-provider-v2'
+          service_account: 'github-deployer@project-0cb13828-a08a-466a-934.iam.gserviceaccount.com'
+          audience: 'https://iam.googleapis.com/projects/352692367446/locations/global/workloadIdentityPools/github-pool-v2/providers/github-provider-v2'
 
       - name: Log in to Artifact Registry
         uses: docker/login-action@v3
