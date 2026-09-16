@@ -25,6 +25,7 @@ ENV/
 data/
 files/
 .files/
+.chainlit/
 evaluation/
 
 # Mac OS files
