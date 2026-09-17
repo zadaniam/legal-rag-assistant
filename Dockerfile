@@ -41,6 +41,10 @@ CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port $PORT"]
 # ==============================================================================
 FROM base AS frontend
 
+# Daftarkan direktori /app ke dalam sistem path Python kontainer frontend 
+# agar folder 'src' dapat ditemukan saat dipanggil dari dalam folder 'ui'
+ENV PYTHONPATH="/app"
+
 # Jalankan Chainlit mengikat ke port dinamis Cloud Run.
 # Parameter --headless wajib agar kontainer tidak mencoba membuka browser di dalam server.
 CMD ["sh", "-c", "chainlit run ui/app_chainlit.py --host 0.0.0.0 --port ${PORT:-8080} --headless"]
