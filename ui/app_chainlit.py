@@ -7,8 +7,7 @@ import uuid
 import chainlit as cl
 import httpx
 
-# Membaca environment variable secara dinamis agar aman di lokal maupun Cloud Run (SoC)
-FASTAPI_CHAT_URL = os.getenv("FASTAPI_CHAT_URL", "http://127.0.0.1:7000/api/v1/chat")
+from src.utils.gcp_auth import FASTAPI_CHAT_URL, create_backend_client
 
 # Mapping nama Node LangGraph ke Bahasa Indonesia agar tampilan UI profesional
 NODE_DISPLAY_MAP = {
@@ -48,7 +47,8 @@ async def handle_message(message: cl.Message):
     citations = []
 
     try:
-        async with httpx.AsyncClient(timeout=60.0) as http_client:
+        # PANGGIL FACTORY: Client otomatis tahu kapan harus pakai token GCP, kapan tidak.
+        async with create_backend_client() as http_client:
             async with http_client.stream(
                 "POST", FASTAPI_CHAT_URL, json=payload
             ) as response:
