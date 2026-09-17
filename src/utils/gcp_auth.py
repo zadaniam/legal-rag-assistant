@@ -30,7 +30,7 @@ class GoogleCloudRunAuth(httpx.Auth):
             try:
                 # Menggunakan client sinkron internal khusus untuk mengambil token metadata
                 with httpx.Client(timeout=2.0) as client:
-                    response = client.get(self.metadata_url, headers=headers, params=params)
+                    response = client.get(self.metadata_endpoint, headers=headers, params=params)
                     if response.status_code == 200:
                         token = response.text
                         request.headers["Authorization"] = f"Bearer {token}"
