@@ -71,11 +71,14 @@ jobs:
             LOG_LEVEL=${{ vars.LOG_LEVEL }}
             LANGSMITH_TRACING=${{ vars.LANGSMITH_TRACING }}
             LANGSMITH_PROJECT=${{ vars.LANGSMITH_PROJECT }}
-            QDRANT_URL=${{ secrets.QDRANT_URL }}
-            POSTGRES_URL=${{ secrets.POSTGRES_URL }}
-            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
-            QDRANT_API_KEY=${{ secrets.QDRANT_API_KEY }}
-            LANGSMITH_API_KEY=${{ secrets.LANGSMITH_API_KEY }}
+
+          # MENGHUBUNGKAN LANGSUNG KE SECRET MANAGER
+          secrets: |
+            QDRANT_URL=QDRANT_URL:latest
+            POSTGRES_URL=POSTGRES_URL:latest
+            GEMINI_API_KEY=GEMINI_API_KEY:latest
+            QDRANT_API_KEY=QDRANT_API_KEY:latest
+            LANGSMITH_API_KEY=LANGSMITH_API_KEY:latest
 
       # ==============================================================================
       # SEGMEN 2: BUILD & DEPLOY FRONTEND (CHAINLIT)
