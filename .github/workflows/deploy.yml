@@ -40,14 +40,23 @@ jobs:
           password: ${{ steps.auth.outputs.access_token }}
 
       # ==============================================================================
+      # Aktivasi Engine Buildx untuk Caching
+      # ==============================================================================
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ==============================================================================
       # SEGMEN 1: BUILD & DEPLOY BACKEND (FASTAPI)
       # ==============================================================================
       - name: Build and Push Backend Image
-        run: |
-          docker build \
-            --target backend \
-            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/backend:${{ github.sha }} .
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/backend:${{ github.sha }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: backend
+          push: true
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/backend:${{ github.sha }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
 
       - name: Deploy Backend to Cloud Run
         id: deploy-backend
@@ -72,11 +81,14 @@ jobs:
       # SEGMEN 2: BUILD & DEPLOY FRONTEND (CHAINLIT)
       # ==============================================================================
       - name: Build and Push Frontend Image
-        run: |
-          docker build \
-            --target frontend \
-            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/frontend:${{ github.sha }} .
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/frontend:${{ github.sha }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: frontend
+          push: true
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/frontend:${{ github.sha }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
 
       - name: Deploy Frontend to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
