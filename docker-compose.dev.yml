@@ -24,20 +24,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-   # 3. Application Server / Entrypoint API [BARU DI SINI]
-  app_server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: legal_app_entrypoint
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env # Mengambil rahasia API Key Gemini secara aman dari file .env lokal server
-    depends_on:
-      - postgres
-      - qdrant
-
 volumes:
   qdrant_storage:
   postgres_data:

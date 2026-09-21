@@ -16,8 +16,8 @@ ENV/
 
 # File Rahasia & Konfigurasi Lokal (SANGAT PENTING)
 .env
-.env.production
-.env.development
+.env.prod
+.env.dev
 .env.example
 !.env.example # Kecualikan file contoh agar tim lain tahu variabel apa saja yang dibutuhkan
 
