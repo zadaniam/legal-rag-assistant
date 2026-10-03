@@ -3,8 +3,11 @@
 import os
 import httpx
 
+
+BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:7000")
+
 APP_ENV = os.getenv("APP_ENV", "development").lower()
-FASTAPI_CHAT_URL = os.getenv("FASTAPI_CHAT_URL", "http://127.0.0.1:7000/api/v1/chat")
+FASTAPI_CHAT_URL = f"{BACKEND_URL}/api/v1/chat"
 
 class GoogleCloudRunAuth(httpx.Auth):
     """
