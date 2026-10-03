@@ -3,54 +3,51 @@ name = "legal-rag-assistant"
 version = "0.1.0"
 description = "Chatbot Agentic RAG Asisten Legal menggunakan LangGraph dan Gemini"
 readme = "README.md"
-requires-python = ">=3.11"
-license = { text = "MIT" }
+requires-python = ">=3.12"
+license = "BUSL-1.1"
+license-files = ["LICENSE"]
 authors = [
     { name = "Zada Niam Musthofa", email = "zadaniammusthofa@gmail.com" }
 ]
 
-# Dependencies Utama Aplikasi (Valid PEP 508 & Mengambil Versi Terbaru)
+# Dependencies Utama Aplikasi
 dependencies = [
-    "fastapi>=0.110.0",
-    "uvicorn[standard]>=0.0.0",       # Menggunakan >=0.0.0 agar valid dan menarik versi terbaru
-    "langgraph>=0.0.0",
-    "google-genai>=0.0.0",
-    "qdrant-client>=0.0.0",
-    "fastembed>=0.0.0",
-    "psycopg[binary]>=3.0.0",
-    "langgraph-checkpoint-postgres>=0.0.0",
-    "pydantic-settings>=2.0.0",
-    "loguru>=0.0.0",
-    "alembic>=0.0.0",
-    "chainlit>=2.12.0",
-    "httpx>=0.28.1",
+    "fastapi~=0.141.1",
+    "uvicorn[standard]~=0.52.4",
+    "langgraph~=1.2.11",
+    "google-genai~=2.22.0",
+    "qdrant-client~=1.19.0",
+    "fastembed~=0.8.0",
+    "psycopg[binary]~=3.3.5",
+    "langgraph-checkpoint-postgres~=3.1.2",
+    "pydantic-settings~=2.15.0",
+    "loguru~=0.7.3",
+    "chainlit~=2.12.0",
+    "httpx~=0.28.1",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.0.0",
-    "ragas>=0.0.0",
-    "langchain-google-genai>=0.0.0",
-    "ruff>=0.0.0",
-    "mypy>=0.0.0",
-    "pre-commit>=4.6.2",
+    "pytest~=9.1.1",
+    "pytest-asyncio~=1.4.0",
+    "ragas~=0.4.3",
+    "langchain-google-genai~=4.4.0",
+    "ruff~=0.16.6",
+    "mypy~=2.3.1",
+    "pre-commit~=4.6.2",
 ]
-
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 
-
 [tool.ruff]
 line-length = 88
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "S", "I"]
 
-# Tambahkan baris di bawah ini untuk mengecualikan aturan S101 (assert) di folder tests
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101"]
 "test_*.py" = ["S101"]
