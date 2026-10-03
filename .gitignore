@@ -14,9 +14,9 @@ env/
 venv/
 ENV/
 
-# File Rahasia & Konfigurasi Lokal (SANGAT PENTING)
+# File Rahasia & Konfigurasi Lokal
 .env*
-!.env.example # Kecualikan file contoh agar tim lain tahu variabel apa saja yang dibutuhkan
+!.env.example
 
 # Data lokal (Karena Cloud Run bersifat sementara/ephemeral)
 files/
