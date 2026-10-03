@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     LANGSMITH_API_KEY: SecretStr
     LANGSMITH_PROJECT: str = "asisten-legal-rag"
 
-    # STRANDAR INDUSTRI: Membaca file secara dinamis berdasarkan nilai app_env
+    # Membaca file secara dinamis berdasarkan nilai app_env
     model_config = SettingsConfigDict(
         env_file=f".env.{app_env}",
         env_file_encoding="utf-8",

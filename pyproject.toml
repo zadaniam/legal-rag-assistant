@@ -3,7 +3,7 @@ name = "legal-rag-assistant"
 version = "0.1.0"
 description = "Chatbot Agentic RAG Asisten Legal menggunakan LangGraph dan Gemini"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.15"
 license = "BUSL-1.1"
 license-files = ["LICENSE"]
 authors = [

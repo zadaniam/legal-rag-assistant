@@ -1,3 +1,9 @@
+up-dev:
+	docker-compose -f docker-compose.dev.yml up -d
+
+down-dev:
+	docker-compose -f docker-compose.dev.yml down
+
 run-app-dev:
 	APP_ENV=development uv run uvicorn src.main:app --port 7000 --reload
 
@@ -9,6 +15,3 @@ init-qdrant-prod:
 
 ingest-qdrant-prod:
 	APP_ENV=production uv run python -m ingestion.mock.run_mock_ingest
-
-
-
