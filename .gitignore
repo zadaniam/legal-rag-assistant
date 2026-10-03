@@ -15,18 +15,13 @@ venv/
 ENV/
 
 # File Rahasia & Konfigurasi Lokal (SANGAT PENTING)
-.env
-.env.prod
-.env.dev
-.env.example
+.env*
 !.env.example # Kecualikan file contoh agar tim lain tahu variabel apa saja yang dibutuhkan
 
 # Data lokal (Karena Cloud Run bersifat sementara/ephemeral)
-data/
 files/
 .files/
 .chainlit/
-evaluation/
 
 # Mac OS files
 .DS_Store
