@@ -2,7 +2,7 @@
 # STAGE 1: Base (Penyiapan Environment & Pemasangan Paket Secara Global)
 # ==============================================================================
 # Menggunakan base image uv resmi berbasis debian-slim untuk efisiensi tinggi
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS base
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS base
 
 WORKDIR /app
 
