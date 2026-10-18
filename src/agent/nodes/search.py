@@ -44,7 +44,7 @@ async def legal_search_node(state: LegalAgentState) -> dict:
 
         must_conditions = [
             models.FieldCondition(
-                key="status_keberlakuan", match=models.MatchValue(value="aktif")
+                key="status_keberlakuan", match=models.MatchValue(value="berlaku")
             )
         ]
         if target_uu != "Semua":
