@@ -21,8 +21,7 @@ DAN
 PRESIDEN REPUBLIK INDONESIA
 MEMUTUSKAN :
 Menetapkan : UNDANG-UNDANG TENTANG KETENAGAKERJAAN.
-## BAB I
-KETENTUAN UMUM
+## BAB I KETENTUAN UMUM
 ### Pasal 1
 Dalam undang undang ini yang dimaksud dengan :
 1. Ketenagakerjaan adalah segala hal yang berhubungan dengan tenaga kerja pada waktu sebelum, selama, dan sesudah masa kerja.
@@ -70,8 +69,7 @@ serikat buruh yang sudah tercatat instansi yang bertanggung jawab di bidang kete
 31. Kesejahteraan pekerja/buruh adalah suatu pemenuhan kebutuhan dan/atau keperluan yang bersifat jasmaniah dan rohaniah, baik di dalam maupun di luar hubungan kerja, yang secara langsung atau tidak langsung dapat mempertinggi produktivitas kerja dalam lingkungan kerja yang aman dan sehat.
 32. Pengawasan ketenagakerjaan adalah kegiatan mengawasi dan menegakkan pelaksanaan peraturan perundang undangan di bidang ketenagakerjaan.
 33. Menteri adalah menteri yang bertanggung jawab di bidang ketenagakerjaan.
-## BAB II
-LANDASAN, ASAS, DAN TUJUAN
+## BAB II LANDASAN, ASAS, DAN TUJUAN
 ### Pasal 2
 Pembangunan ketenagakerjaan berlandaskan Pancasila dan Undang Undang
 Dasar Negara Republik Indonesia Tahun 1945.
@@ -83,14 +81,12 @@ a. memberdayakan dan mendayagunakan tenaga kerja secara optimal dan manusiawi;
 b. mewujudkan pemerataan kesempatan kerja dan penyediaan tenaga kerja yang sesuai dengan kebutuhan pembangunan nasional dan daerah;
 c. memberikan perlindungan kepada tenaga kerja dalam mewujudkan kesejahteraan; dan d. meningkatkan kesejahteraan tenaga kerja dan keluarganya.
 
-## BAB III
-KESEMPATAN DAN PERLAKUAN YANG SAMA
+## BAB III KESEMPATAN DAN PERLAKUAN YANG SAMA
 ### Pasal 5
 Setiap tenaga kerja memiliki kesempatan yang sama tanpa diskriminasi untuk memperoleh pekerjaan.
 ### Pasal 6
 Setiap pekerja/buruh berhak memperoleh perlakuan yang sama tanpa diskriminasi dari pengusaha.
-## BAB IV
-PERENCANAAN TENAGA KERJA DAN
+## BAB IV PERENCANAAN TENAGA KERJA DAN
 INFORMASI KETENAGAKERJAAN
 ### Pasal 7
 (1) Dalam rangka pembangunan ketenagakerjaan, pemerintah menetapkan kebijakan dan menyusun perencanaan tenaga kerja.
@@ -109,8 +105,7 @@ f. kondisi lingkungan kerja;
 g. pengupahan dan kesejahteraan tenaga kerja; dan h. jaminan sosial tenaga kerja.
 (2) Informasi ketenagakerjaan sebagaimana dimaksud dalam ayat (1), diperoleh dari semua pihak yang terkait, baik instansi pemerintah maupun swasta.
 (3) Ketentuan mengenai tata cara memperoleh informasi ketenagakerjaan dan penyusunan serta pelaksanaan perencanaan tenaga kerja sebagaimana dimaksud dalam ayat (1) diatur dengan Peraturan Pemerintah.
-## BAB V
-PELATIHAN KERJA
+## BAB V PELATIHAN KERJA
 ### Pasal 9
 Pelatihan kerja diselenggarakan dan diarahkan untuk membekali, meningkatkan, dan mengembangkan kompetensi kerja guna meningkatkan kemampuan, produktivitas, dan kesejahteraan.
 ### Pasal 10
@@ -211,8 +206,7 @@ Presiden.
 ayat (2) dibentuk lembaga pro duktivitas yang bersifat nasional.
 (2) Lembaga produktivitas sebagaimana dimaksud dalam ayat (1) berbentuk jejaring kelembagaan pelayanan peningkatan produktivitas, yang bersifat lintas sektor maupun daerah.
 (3) Pembentukan, keanggotaan, dan tata kerja lembaga produktivitas nasional sebagaimana dimaksud dalam ayat (1), diatur dengan Keputusan Presiden.
-## BAB VI
-PENEMPATAN TENAGA KERJA
+## BAB VI PENEMPATAN TENAGA KERJA
 ### Pasal 31
 Setiap tenaga kerja mempunyai hak dan kesempatan yang sama untuk memilih, mendapatkan, atau pindah pekerjaan dan memperoleh penghasilan yang layak di dalam atau di luar negeri.
 ### Pasal 32
@@ -253,8 +247,7 @@ ayat (1) huruf a, dilarang memungut biaya penempatan, baik langsung maupun tidak
 ### Pasal 37 ayat (1) huruf b, hanya dapat memungut biaya penempatan tenaga kerja dari pengguna tenaga kerja dan dari tenaga kerja golongan dan jabatan tertentu.
 (3) Golongan dan jabatan sebagaimana dimaksud dalam ayat (2) ditetapkan dengan Keputusan Menteri.
 
-## BAB VII
-PERLUASAN KESEMPATAN KERJA
+## BAB VII PERLUASAN KESEMPATAN KERJA
 ### Pasal 39
 (1) Pemerintah bertanggung jawab mengupayakan perluasan kesempatan kerja baik di dalam maupun di luar hubungan kerja.
 (2) Pemerintah dan masyarakat bersama-sama mengupayakan perluasan kesempatan kerja baik di dalam maupun di luar hubungan kerja.
@@ -271,8 +264,7 @@ PERLUASAN KESEMPATAN KERJA
 (3) Dalam melaksanakan tugas sebagaimana dimaksud dalam ayat (2) dapat dibentuk badan koordinasi yang beranggotakan unsur pemerintah dan unsur masyarakat.
 (4) Ketentuan mengenai perluasan kesempatan kerja, dan pembentukan badan koordinasi sebagaimana dimaksud dalam Pasal 39, Pasal 40, dan ayat (3)
 dalam pasal ini diatur dengan Peraturan Pemerintah.
-## BAB VIII
-PENGGUNAAN TENAGA KERJA ASING
+## BAB VIII PENGGUNAAN TENAGA KERJA ASING
 ### Pasal 42
 (1) Setiap pemberi kerja yang mempekerjakan tenaga kerja asing wajib memiliki izin tertulis dari Menteri atau pejabat yang ditunjuk.
 (2) Pemberi kerja orang perseorangan dilarang mempekerjakan tenaga kerja asing.
@@ -313,8 +305,7 @@ Pemberi kerja yang mempekerjakan tenaga kerja asing wajib memulangkan tenaga ker
 ### Pasal 49
 Ketentuan mengenai penggunaan tenaga kerja asing serta pelaksanaan pendidikan dan pelatihan tenaga kerja pendamping diatur dengan Keputusan
 Presiden.
-## BAB IX
-HUBUNGAN KERJA
+## BAB IX HUBUNGAN KERJA
 ### Pasal 50
 Hubungan kerja terjadi karena adanya perjanjian kerja antara pengusaha dan pekerja/buruh.
 ### Pasal 51
@@ -423,8 +414,7 @@ dan/atau perjanjian kerja waktu tidak tertentu yang dibuat secara tertulis dan d
 c. perlindungan upah dan kesejahteraan, syarat-syarat kerja, serta perselisihan yang timbul menjadi tanggung jawab perusahaan penyedia jasa pekerja/buruh; dan d. perjanjian antara perusahaan pengguna jasa pekerja/buruh dan perusahaan lain yang bertindak sebagai perusahaan penyedia jasa pekerja/buruh dibuat secara tertulis dan wajib memuat pasal-pasal sebagaimana dimaksud dalam undang-undang ini.
 (3) Penyedia jasa pekerja/buruh merupakan bentuk usaha yang berbadan hukum dan memiliki izin dari instansi yang bertanggung jawab di bidang ketenagakerjaan.
 (4) Dalam hal ketentuan sebagaimana dimaksud dalam ayat (1), ayat (2) huruf a, huruf b, dan huruf d serta ayat (3) tidak terpenuhi, maka demi hukum status hubungan kerja antara pekerja/buruh dan perusahaan penyedia jasa pekerja/buruh beralih menjadi hubungan kerja antara pekerja/buruh dan perusahaan pemberi pekerjaan.
-## BAB X
-PERLINDUNGAN, PENGUPAHAN, DAN
+## BAB X PERLINDUNGAN, PENGUPAHAN, DAN
 KESEJAHTERAAN
 Bagian Kesatu
 Perlindungan
@@ -665,8 +655,7 @@ Kesejahteraan
 (4) Upaya-upaya untuk menumbuhkembangkan koperasi pekerja/buruh sebagaimana dimaksud dalam ayat (2), diatur dengan Peraturan
 Pemerintah.
 
-## BAB XI
-HUBUNGAN INDUSTRIAL
+## BAB XI HUBUNGAN INDUSTRIAL
 Bagian Kesatu
 Umum
 ### Pasal 102
@@ -916,8 +905,7 @@ menghasilkan kesepakatan, maka harus dibuat perjanjian bersama yang ditandatanga
 a. pekerja/buruh atau serikat pekerja/serikat buruh melanggar prosedur mogok kerja sebagaimana dimaksud dalam Pasal 140;
 b. pekerja/buruh atau serikat pekerja/serikat buruh melanggar ketentuan normatif yang ditentukan dalam perjanjian kerja, peraturan perusahaan, perjanjian kerja bersama, atau peraturan perundang-undangan yang berlaku.
 
-## BAB XII
-PEMUTUSAN HUBUNGAN KERJA
+## BAB XII PEMUTUSAN HUBUNGAN KERJA
 ### Pasal 150
 Ketentuan mengenai pemutusan hubungan kerja dalam undang-undang ini meliputi pemutusan hubungan kerja yang terjadi di badan usaha yang berbadan hukum atau tidak, milik orang perseorangan, milik persekutuan atau milik badan hukum, baik milik swasta maupun milik negara, maupun usaha-usaha sosial dan usaha-usaha lain yang mempunyai pengurus dan mempekerjakan orang lain dengan membayar upah atau imbalan dalam bentuk lain.
 ### Pasal 151
@@ -1124,8 +1112,7 @@ Pekerja/buruh yang mengalami pemutusan hubungan kerja tanpa penetapan lembaga pe
 ### Pasal 172
 Pekerja/buruh yang mengalami sakit berkepanjangan, mengalami cacat akibat kecelakaan kerja dan tidak dapat melakukan pekerjaannya setelah melampaui batas 12 (dua belas) bulan dapat mengajukan pemutusan hubungan kerja dan diberikan uang pesangon 2 (dua) kali ketentuan Pasal 156 ayat (2), uang penghargaan masa kerja 2 (dua) kali ketentuan Pasal 156 ayat (3), dan uang pengganti hak 1 (satu) kali ketentuan Pasal 156 ayat (4).
 
-## BAB XIII
-PEMBINAAN
+## BAB XIII PEMBINAAN
 ### Pasal 173
 (1) Pemerintah melakukan pembinaan terhadap unsur-unsur dan kegiatan yang berhubungan dengan ketena-gakerjaan.
 (2) Pembinaan sebagaimana dimaksud dalam ayat (1), dapat mengikutsertakan organisasi pengusaha, seri-kat pekerja/serikat buruh, dan organisasi profesi terkait.
@@ -1135,8 +1122,7 @@ Dalam rangka pembinaan ketenagakerjaan, pemerintah, organisasi peng-usaha, serik
 ### Pasal 175
 (1) Pemerintah dapat memberikan penghargaan kepada orang atau lembaga yang telah berjasa dalam pem-binaan ketenagakerjaan.
 (2) Penghargaan sebagaimana dimaksud dalam ayat (1) dapat diberikan dalam bentuk piagam, uang, dan/atau bentuk lainnya.
-## BAB XIV
-PENGAWASAN
+## BAB XIV PENGAWASAN
 ### Pasal 176
 Pengawasan ketenagakerjaan dilakukan oleh pegawai pengawas ketenagakerjaan yang mempunyai kompetensi dan independen guna menjamin pelaksanaan peraturan perundang-undangan ketenagakerjaan.
 
@@ -1160,8 +1146,7 @@ Pegawai pengawas ketenagakerjaan dalam melaksanakan tugasnya sebagaimana dimaksu
 a. merahasiakan segala sesuatu yang menurut sifatnya patut dirahasiakan;
 b. tidak menyalahgunakan kewenangannya.
 
-## BAB XV
-PENYIDIKAN
+## BAB XV PENYIDIKAN
 ### Pasal 182
 (1) Selain penyidik pejabat Polisi Negara Republik Indonesia, juga kepada pegawai pengawas ketenagakerjaan dapat diberi wewenang khusus sebagai penyidik pegawai negeri sipil sesuai dengan peraturan perundangundangan yang berlaku.
 (2) Penyidik Pegawai Negeri Sipil sebagaimana dimaksud dalam ayat (1)
@@ -1173,8 +1158,7 @@ d. melakukan pemeriksaan atau penyitaan bahan atau barang bukti dalam perkara ti
 e. melakukan pemeriksaan atas surat dan/atau dokumen lain tentang tindak pidana di bidang ketenagakerjaan;
 f. meminta bantuan tenaga ahli dalam rangka pelaksanaan tugas penyidikan tindak pidana di bidang ketenagakerjaan; dan g. menghentikan penyidikan apabila tidak terdapat cukup bukti yang membuktikan tentang adanya tindak pidana di bidang ketenagakerjaan.
 (3) Kewenangan penyidik pegawai negeri sipil sebagaimana dimaksud dalam ayat (2) dilaksanakan sesuai dengan peraturan perundang-undangan yang berlaku.
-## BAB XVI
-KETENTUAN PIDANA DAN
+## BAB XVI KETENTUAN PIDANA DAN
 SANKSI ADMINISTRATIF
 Bagian Pertama
 Ketentuan Pidana
@@ -1232,13 +1216,11 @@ f. pembatalan pendaftaran;
 g. penghentian sementara sebagian atau seluruh alat produksi;
 h. pencabutan ijin.
 (3) Ketentuan mengenai sanksi administratif sebagaimana dimaksud dalam ayat (1) dan ayat (2) diatur lebih lanjut oleh Menteri.
-## BAB XVII
-KETENTUAN PERALIHAN
+## BAB XVII KETENTUAN PERALIHAN
 ### Pasal 191
 Semua peraturan pelaksanaan yang mengatur ketenagakerjaan tetap berlaku sepanjang tidak bertentangan dan/atau belum diganti dengan peraturan yang baru berdasarkan Undang undang ini.
 
-## BAB XVIII
-KETENTUAN PENUTUP
+## BAB XVIII KETENTUAN PENUTUP
 ### Pasal 192
 Pada saat mulai berlakunya Undang undang ini, maka :
 1. Ordonansi tentang Pengerahan Orang Indonesia Untuk Melakukan

@@ -1,5 +1,4 @@
 import os
-
 import pdfplumber
 
 
@@ -38,8 +37,8 @@ def run_extractor(pdf_path, output_dir):
 
 if __name__ == "__main__":
     # Tentukan jalur file input dan output di sini
-    INPUT_PDF = "data/1_raw/uu_nomor_13_tahun_2003.pdf"
-    OUTPUT_FOLDER = "data/2_extracted/"
+    INPUT_PDF = "data/raw/uu_nomor_24_tahun_2011_bpjs.pdf"
+    OUTPUT_FOLDER = "data/preprocessed/loaded/uu_bpjs/"
 
     # Jalankan proses ekstraksi
     run_extractor(INPUT_PDF, OUTPUT_FOLDER)

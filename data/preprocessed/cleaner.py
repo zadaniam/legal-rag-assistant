@@ -54,7 +54,7 @@ def run_cleaner(input_dir, output_file_path):
 
 
 if __name__ == "__main__":
-    INPUT_FOLDER = "data/2_extracted/"
-    OUTPUT_FILE = "data/3_cleaned/uu_ketenagakerjaan_clean.txt"
+    INPUT_FOLDER = "data/preprocessed/loaded/uu_bpjs/"
+    OUTPUT_FILE = "data/preprocessed/cleaned/uu_bpjs_clean.txt"
 
     run_cleaner(INPUT_FOLDER, OUTPUT_FILE)

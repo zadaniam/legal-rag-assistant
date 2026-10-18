@@ -42,7 +42,7 @@ def run_parser(input_file_path, output_file_path):
 
 
 if __name__ == "__main__":
-    INPUT_FILE = "data/3_cleaned/uu_ketenagakerjaan_clean.txt"
-    OUTPUT_MD = "data/4_processed/uu_ketenagakerjaan_parse.md"
+    INPUT_FILE = "data/preprocessed/cleaned/uu_bpjs_clean.txt"
+    OUTPUT_MD = "data/preprocessed/parsed/uu_bpjs_parse.md"
 
     run_parser(INPUT_FILE, OUTPUT_MD)
