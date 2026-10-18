@@ -83,7 +83,7 @@ init-postgres: ## Create PostgreSQL tables
 	APP_ENV=$(APP_ENV) $(PYTHON) -m src.database.init_postgres
 
 ingest: ## Ingest mock legal data into Qdrant
-	APP_ENV=$(APP_ENV) $(PYTHON) -m ingestion.mock.run_mock_ingest
+	APP_ENV=$(APP_ENV) $(PYTHON) -m ingestion.run_ingest
 
 # ==============================================================================
 # Run the application
