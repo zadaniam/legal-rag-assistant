@@ -1,5 +1,6 @@
-import asyncio
+# src/database/init_qdrant.py
 
+import asyncio
 from qdrant_client.models import (
     Distance,
     Modifier,
@@ -9,20 +10,17 @@ from qdrant_client.models import (
     TokenizerType,
     VectorParams,
 )
-
-# PERBAIKAN: Hanya impor client Qdrant, buang fungsi lifespan PostgreSQL
+from ingestion.config import settings
 from src.database.connection import async_qdrant_client
 from src.logger import logger
 
-
 async def init_qdrant_collections():
-    collection_name = "legal_knowledge_base"
-    logger.info(f"Memeriksa keberadaan koleksi '{collection_name}' di Qdrant Async...")
+    collection_name = settings.QDRANT_COLLECTION_NAME
+    logger.info(f"Memeriksa keberadaan koleksi '{collection_name}' di Qdrant Async ({settings.ENVIRONMENT.upper()})...")
 
     collections_response = await async_qdrant_client.get_collections()
     existing_collections = [c.name for c in collections_response.collections]
 
-    # KUNCI MIGRASI: Hapus koleksi jika ada untuk mendaftarkan struktur Hybrid secara bersih
     if collection_name in existing_collections:
         logger.warning(
             f"Koleksi lama '{collection_name}' terdeteksi. Menghapus untuk migrasi ke Hybrid Search..."
@@ -38,12 +36,11 @@ async def init_qdrant_collections():
         f"Membuat koleksi baru '{collection_name}' dengan arsitektur Hybrid (Dense + Sparse/BM25)..."
     )
 
-    # Bangun koleksi Hybrid dengan mendaftarkan dense dan sparse vector
     await async_qdrant_client.create_collection(
         collection_name=collection_name,
         vectors_config={
             "text_dense": VectorParams(
-                size=3072,  # Sesuai dengan ukuran teks model Anda (misal OpenAI text-embedding-3-large)
+                size=3072,  # Ukuran embedding Gemini text-embedding-004
                 distance=Distance.COSINE,
             )
         },
@@ -54,7 +51,7 @@ async def init_qdrant_collections():
         },
     )
 
-    # Buat Full-Text Match Index pada field text_child untuk mesin pencari kata kunci (BM25)
+    # Indeks pencarian kata kunci leksikal
     await async_qdrant_client.create_payload_index(
         collection_name=collection_name,
         field_name="text_child",
@@ -63,20 +60,26 @@ async def init_qdrant_collections():
         ),
     )
 
-    # Indeks metadata untuk filter target undang-undang di Node Search
+    # Indeks metadata untuk filter penajaman query hukum Anda
     await async_qdrant_client.create_payload_index(
         collection_name=collection_name,
         field_name="status_keberlakuan",
         field_schema="keyword",
     )
+    await async_qdrant_client.create_payload_index(
+        collection_name=collection_name,
+        field_name="uu_id",
+        field_schema="keyword",
+    )
+    
     logger.info(f"Koleksi '{collection_name}' sukses dikonfigurasi.")
 
 
 async def run_qdrant_initialization():
     try:
-        logger.info("=== MEMULAI INISIALISASI QDRANT HYBRID ===")
-        # PERBAIKAN: Tidak perlu memanggil open pool PostgreSQL di sini
-
+        logger.info(f"=== MEMULAI INISIALISASI QDRANT HYBRID [{settings.ENVIRONMENT.upper()}] ===")
+        
+        # Eksekusi fungsi inisialisasi menggunakan objek koneksi pasif Anda
         await init_qdrant_collections()
 
         logger.info("=== QDRANT HYBRID BERHASIL DIKONFIGURASI ===")
@@ -84,7 +87,7 @@ async def run_qdrant_initialization():
         logger.error(f"Inisialisasi Qdrant gagal: {e}")
         raise e
     finally:
-        # PERBAIKAN: Tutup client Qdrant secara mandiri dan bersih saat selesai
+        # Menutup HTTP client Qdrant secara bersih
         logger.info("Menutup koneksi Async Qdrant Client...")
         await async_qdrant_client.close()
         logger.info("Koneksi Async Qdrant Client berhasil ditutup bersih.")
