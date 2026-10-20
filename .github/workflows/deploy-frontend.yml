@@ -69,3 +69,4 @@ jobs:
           env_vars: |
             APP_ENV=${{ vars.ENVIRONMENT }}
             BACKEND_URL=${{ vars.BACKEND_URL }}
+            
