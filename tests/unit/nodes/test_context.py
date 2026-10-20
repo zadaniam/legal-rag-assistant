@@ -47,7 +47,7 @@ async def test_context_manager_legal_query_success(mock_generate_content):
         '{"is_chitchat": false, '
         '"chitchat_response": "", '
         '"search_payloads": ['
-        '  {"query": "aturan uang pesangon PHK", "target_uu": "UU Cipta Kerja"},'
+        '  {"query": "aturan uang pesangon PHK", "target_uu": "uu_ketenagakerjaan_2003"},'
         '  {"query": "hak jaminan pensiun BPJS", "target_uu": "Semua"}'
         "]}"
     )
@@ -71,5 +71,5 @@ async def test_context_manager_legal_query_success(mock_generate_content):
 
     assert node_output["search_filters"]["is_chitchat"] is False
     assert len(node_output["search_payloads"]) == 2
-    assert node_output["search_payloads"][0]["target_uu"] == "UU Cipta Kerja"
+    assert node_output["search_payloads"][0]["target_uu"] == "uu_ketenagakerjaan_2003"
     assert node_output["search_payloads"][1]["query"] == "hak jaminan pensiun BPJS"

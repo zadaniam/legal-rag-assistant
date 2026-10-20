@@ -27,15 +27,24 @@ async def test_legal_search_node_multi_query_integration(
     # Respon untuk Kueri 1 (Pesangon)
     mock_point_pesangon = MagicMock()
     mock_point_pesangon.payload = {
-        "pasal": "156",
+        "uu_id": "uu_ketenagakerjaan_2003",
+        "pasal": "Pasal 156",
+        "text_child": "Komponen pesangon...",
         "text_parent": "Aturan Uang Pesangon",
+        "status_keberlakuan": "berlaku",
     }
     mock_resp_1 = MagicMock()
     mock_resp_1.points = [mock_point_pesangon]
 
     # Respon untuk Kueri 2 (BPJS)
     mock_point_bpjs = MagicMock()
-    mock_point_bpjs.payload = {"pasal": "37", "text_parent": "Aturan Klaim JHT"}
+    mock_point_bpjs.payload = {
+        "uu_id": "uu_bpjs_2011",
+        "pasal": "Pasal 37",
+        "text_child": "Klaim JHT...",
+        "text_parent": "Aturan Klaim JHT",
+        "status_keberlakuan": "berlaku",
+    }
     mock_resp_2 = MagicMock()
     mock_resp_2.points = [mock_point_bpjs]
 
@@ -47,9 +56,10 @@ async def test_legal_search_node_multi_query_integration(
         "messages": [],
         "summary_memory": "",
         "search_payloads": [
-            {"query": "aturan uang pesangon", "target_uu": "UU Cipta Kerja"},
+            {"query": "aturan uang pesangon", "target_uu": "uu_ketenagakerjaan_2003"},
             {"query": "syarat klaim JHT BPJS", "target_uu": "Semua"},
         ],
+
         "retrieved_documents": [],
         "system_status": "clear",
         "final_answer": "",
@@ -64,8 +74,8 @@ async def test_legal_search_node_multi_query_integration(
     assert len(node_output["retrieved_documents"]) == 2
 
     # Pastikan data dokumen yang digabungkan tidak tertukar susunannya
-    assert node_output["retrieved_documents"][0]["pasal"] == "156"
-    assert node_output["retrieved_documents"][1]["pasal"] == "37"
+    assert node_output["retrieved_documents"][0]["pasal"] == "Pasal 156"
+    assert node_output["retrieved_documents"][1]["pasal"] == "Pasal 37"
 
     # Bukti mutlak async paralel bekerja: query_points wajib terpanggil tepat 2 kali secara simultan
     assert mock_query_points.call_count == 2

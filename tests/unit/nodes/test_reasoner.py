@@ -39,11 +39,13 @@ async def test_legal_reasoner_substance_query_success(mock_generate_content):
     mock_state: LegalAgentState = {
         "messages": [HumanMessage(content="Berapa pesangon PHK?")],
         "search_filters": {"is_chitchat": False},
-        "retrieved_documents": [
+                "retrieved_documents": [
             {
-                "nama_regulasi": "UU No. 6/2023 tentang Cipta Kerja",
-                "pasal": "156",
+                "uu_id": "uu_ketenagakerjaan_2003",
+                "bab": "BAB XII PEMUTUSAN HUBUNGAN KERJA",
+                "pasal": "Pasal 156",
                 "text_parent": "Isi pasal utuh 156...",
+                "text_child": "Komponen pesangon...",
             }
         ],
         "final_answer": "",

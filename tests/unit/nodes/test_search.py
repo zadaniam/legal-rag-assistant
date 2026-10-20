@@ -18,11 +18,11 @@ async def test_legal_search_node_multi_uu_success(mock_query_points, mock_embed_
     # 1. Siapkan mock data ScoredPoint dari Qdrant
     mock_point = MagicMock()
     mock_point.payload = {
-        "uu_id": "UU_CIPTA_KERJA_2023",
-        "pasal": "156",
+        "uu_id": "uu_ketenagakerjaan_2003",
+        "pasal": "Pasal 156",
         "text_child": "Pasal 156 Ayat 2: Uang pesangon...",
         "text_parent": "Teks lengkap Pasal 156...",
-        "status_keberlakuan": "aktif",
+        "status_keberlakuan": "berlaku",
     }
 
     # Bungkus hasil ke dalam objek tiruan response yang memiliki atribut .points
@@ -31,14 +31,14 @@ async def test_legal_search_node_multi_uu_success(mock_query_points, mock_embed_
     mock_query_points.return_value = mock_response
 
     # Mock return value untuk fungsi embedding (larik angka tiruan)
-    mock_embed_text.return_value = [0.1] * 3072
+    mock_embed_text.return_value = [[0.1] * 3072, [0.1] * 3072]
 
     # 2. Siapkan Mock State berisi Multi-UU payload hasil keluaran Node 2 kemarin
     mock_state: LegalAgentState = {
         "messages": [],
         "summary_memory": "",
         "search_payloads": [
-            {"query": "pesangon di ciptaker", "target_uu": "UU_CIPTA_KERJA_2023"},
+            {"query": "pesangon ketenagakerjaan", "target_uu": "uu_ketenagakerjaan_2003"},
             {"query": "aturan lembur", "target_uu": "Semua"},
         ],
         "retrieved_documents": [],
@@ -52,8 +52,8 @@ async def test_legal_search_node_multi_uu_success(mock_query_points, mock_embed_
     # 4. Validasi kebenaran logika paralel
     assert "retrieved_documents" in node_output
     assert len(node_output["retrieved_documents"]) == 1
-    assert node_output["retrieved_documents"][0]["pasal"] == "156"
-    assert node_output["retrieved_documents"][0]["uu_id"] == "UU_CIPTA_KERJA_2023"
+    assert node_output["retrieved_documents"][0]["pasal"] == "Pasal 156"
+    assert node_output["retrieved_documents"][0]["uu_id"] == "uu_ketenagakerjaan_2003"
 
     # Pastikan query points dipanggil 2 kali secara paralel karena ada 2 objek query
     assert mock_query_points.call_count == 2
