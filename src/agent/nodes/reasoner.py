@@ -43,7 +43,13 @@ async def legal_reasoner_node(state: LegalAgentState) -> dict:
     # Format kumpulan pasal menjadi teks terstruktur untuk disuapkan ke System Prompt
     formatted_docs = ""
     for idx, doc in enumerate(retrieved_docs, start=1):
-        formatted_docs += f"\nDokumen #{idx}:\nRegulasi: {doc.get('nama_regulasi', 'UU')}\nPasal: {doc.get('pasal')}\nIsi Teks:\n{doc.get('text_parent')}\n"
+        formatted_docs += (
+            f"\nDokumen #{idx}:\n"
+            f"ID UU: {doc.get('uu_id', 'N/A')}\n"
+            f"Bab: {doc.get('bab', 'N/A')}\n"
+            f"Pasal: {doc.get('pasal', 'N/A')}\n"
+            f"Isi Konteks Hukum:\n{doc.get('text_parent', doc.get('text_child', ''))}\n"
+        )
 
     # Susun instruksi emas penolak halusinasi
     full_system_instruction = LEGAL_REASONER_SYSTEM_PROMPT.format(

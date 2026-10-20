@@ -20,7 +20,7 @@ class SearchQueryPayload(BaseModel):
         description="Kata kunci pencarian spesifik hukum, disarikan dari pertanyaan user."
     )
     target_uu: str = Field(
-        description="Nama undang-undang yang ditargetkan, pilih hanya 'UU Cipta Kerja', 'UU Ketenagakerjaan', atau 'Semua' jika berpotensi ada di keduanya."
+        description="ID undang-undang yang ditargetkan. Pilih hanya 'uu_ketenagakerjaan_2003', 'uu_bpjs_2011', atau 'Semua' jika berpotensi ada di keduanya."
     )
 
 
@@ -97,9 +97,9 @@ async def context_manager_node(state: LegalAgentState) -> dict:
 
     except Exception as e:
         logger.error(f"Gagal memproses routing semantik di Node 2: {e}")
-        # Mekanisme Fallback Darurat: Anggap sebagai pencarian umum jika AI gagal merespons format JSON
+        # Mekanisme Fallback Darurat menggunakan format target_uu yang baru
         fallback_payload = [{"query": user_message, "target_uu": "Semua"}]
         return {
             "search_payloads": fallback_payload,
-            "search_filters": {"is_chitchat": False, "chitchat_response": None},
+            "search_filters": {"is_chitchat": False, "chitchat_response": None, "target_uu": "Semua"},
         }

@@ -44,8 +44,13 @@ async def output_guard_node(state: LegalAgentState) -> dict:
     # Ekstrak semua pola angka pasal dari jawaban AI menggunakan regex
     cited_pasals = re.findall(r"Pasal\s+(\d+)", final_answer)
 
-    # Ambil daftar nomor pasal resmi yang terambil dari database Qdrant
-    allowed_pasals = [str(doc.get("pasal")) for doc in retrieved_docs]
+    # Ambil daftar nomor pasal resmi yang terambil dari database Qdrant (ekstrak hanya angkanya saja)
+    allowed_pasals = []
+    for doc in retrieved_docs:
+        pasal_text = str(doc.get("pasal", ""))
+        match = re.search(r"\d+", pasal_text)
+        if match:
+            allowed_pasals.append(match.group())
 
     logger.info(
         f"Pasal disitasi AI: {cited_pasals} | Pasal diizinkan Qdrant: {allowed_pasals}"
@@ -66,7 +71,7 @@ async def output_guard_node(state: LegalAgentState) -> dict:
     # TAHAP 2: VALIDASI GEMINI (SEMANTIK / EVALUASI MAKNA)
     # ---------------------------------------------------------
     formatted_docs = "\n".join(
-        [f"Pasal {d.get('pasal')}: {d.get('text_parent')}" for d in retrieved_docs]
+        [f"{d.get('pasal', 'Pasal N/A')}: {d.get('text_parent', d.get('text_child', ''))}" for d in retrieved_docs]
     )
     user_query = (
         f"DOKUMEN_ASLI_RETRIEVAL:\n{formatted_docs}\n\nJAWABAN_AI:\n{final_answer}"
