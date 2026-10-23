@@ -1,7 +1,6 @@
 # app_chainlit.py
 
 import json
-import os
 import uuid
 
 import chainlit as cl
@@ -16,6 +15,12 @@ NODE_DISPLAY_MAP = {
     "legal_search": "🔍 Mencari Referensi Pasal Hukum di Database Qdrant",
     "legal_reasoner": "⚖️ Menyusun Analisis & Argumen Hukum",
     "output_guard": "🔬 Memverifikasi Akurasi dan Validitas Jawaban",
+}
+
+# Mapping nama database UU ke format penulisan resmi Indonesia
+UU_DISPLAY_MAP = {
+    "uu_ketenagakerjaan_2003": "UU No. 13 Tahun 2003 tentang Ketenagakerjaan",
+    "uu_bpjs_2011": "UU No. 24 Tahun 2011 tentang BPJS",
 }
 
 
@@ -95,10 +100,21 @@ async def handle_message(message: cl.Message):
                 # 4. Render Dokumen Sitasi ke layar Sidebar jika ada
                 elements = []
                 for idx, cite in enumerate(citations, start=1):
+                    # Mengambil nama resmi dari map, jika tidak terdaftar pakai nama asli dari database
+                    raw_uu_id = cite.get("uu_id", "")
+                    formatted_uu_id = UU_DISPLAY_MAP.get(raw_uu_id, raw_uu_id)
+
+                    markdown_content = (
+                        f"## ⚖️ {formatted_uu_id}\n"  # Memperbesar judul UU
+                        f"**{cite['bab']}**\n\n"  # Menebalkan Bab + Jarak Spasi
+                        f"{cite['text_parent']}\n\n"  # Isi Pasal Utama
+                        f"---\n\n"  # Garis pembatas horisontal & spasi akhir
+                    )
+
                     elements.append(
                         cl.Text(
-                            name="Daftar Sitasi Kutipan Pasal",
-                            content=f"**{cite['uu_id']} Pasal {cite['pasal']} Ayat {cite['ayat']}** \n{cite['text_child']}",
+                            name="Daftar Sitasi Pasal Terkait",
+                            content=markdown_content,
                             display="side",
                         )
                     )
