@@ -32,7 +32,7 @@ async def output_guard_node(state: LegalAgentState) -> dict:
 
     # Rute Khusus: Lewati pengecekan jika ini adalah Chit-Chat
     filters = state.get("search_filters", {})
-    if filters.get("is_chitchat") == True:
+    if filters.get("is_chitchat"):
         return {"system_status": "clear"}
 
     final_answer = state.get("final_answer", "")

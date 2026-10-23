@@ -28,7 +28,7 @@ def route_after_input_guard(state: LegalAgentState):
 
 def route_after_context(state: LegalAgentState):
     filters = state.get("search_filters", {})
-    if filters.get("is_chitchat") == True:
+    if filters.get("is_chitchat"):
         logger.info("Input terdeteksi Chit-Chat. Lompat langsung ke Reasoner.")
         return "skip_search"
     logger.info("Input terdeteksi Pertanyaan Hukum. Lanjut ke Qdrant Search.")

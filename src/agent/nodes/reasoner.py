@@ -20,7 +20,7 @@ async def legal_reasoner_node(state: LegalAgentState) -> dict:
 
     # 1. Cek Rute Khusus: Jika state mendeteksi ini adalah Chit-Chat, langsung ambil respon dari router
     filters = state.get("search_filters", {})
-    if filters.get("is_chitchat") == True:
+    if filters.get("is_chitchat"):
         logger.info("Meneruskan respon Chit-Chat langsung ke pengguna.")
         chitchat_ans = filters.get(
             "chitchat_response", "Halo! Ada yang bisa saya bantu terkait hukum?"

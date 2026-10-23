@@ -1,7 +1,8 @@
 # tests/integration/test_api_integration.py
+import json
 from unittest.mock import MagicMock, patch
 
-import httpx  # Impor httpx secara utuh untuk mengambil ASGITransport
+import httpx
 import pytest
 from httpx import AsyncClient
 
@@ -29,15 +30,6 @@ async def test_api_chat_validation_error_on_empty_payload():
 
     assert response.status_code == 422
     assert "detail" in response.json()
-
-
-# tests/integration/test_api_integration.py
-import json
-
-import pytest
-
-# Asumsikan 'app' diimpor dari modul utama aplikasi Anda
-
 
 @pytest.mark.asyncio
 @patch("src.api.v1.chat.compile_legal_graph")

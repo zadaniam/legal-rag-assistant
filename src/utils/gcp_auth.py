@@ -4,6 +4,8 @@ import os
 
 import httpx
 
+from src.logger import logger
+
 BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:7000")
 
 APP_ENV = os.getenv("APP_ENV", "development").lower()
@@ -42,8 +44,10 @@ class GoogleCloudRunAuth(httpx.Auth):
                     if response.status_code == 200:
                         token = response.text
                         request.headers["Authorization"] = f"Bearer {token}"
-            except Exception:
-                pass  # Tetap lanjutkan request tanpa token jika metadata server gagal dijangkau
+            except Exception as e:
+                logger.warning(
+                    f"Metadata server Google tidak dijangkau, melanjutkan request tanpa token: {e}"
+                )
 
         yield request
 
