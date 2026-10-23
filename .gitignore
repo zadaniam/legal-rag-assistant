@@ -25,3 +25,7 @@ files/
 
 # Mac OS files
 .DS_Store
+
+htmlcov/
+.coverage
+.coverage.*

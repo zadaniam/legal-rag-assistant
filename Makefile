@@ -58,6 +58,9 @@ test: ## Run the full test suite (requires the Docker databases)
 test-unit: ## Run unit tests only
 	$(UV) run pytest tests/unit
 
+test-unit-nodes: ## Run nodes unit tests only
+	$(UV) run pytest tests/unit/nodes
+
 test-integration: ## Run integration tests only
 	$(UV) run pytest tests/integration
 
@@ -92,7 +95,7 @@ run-app: ## Run the FastAPI backend (http://localhost:7000)
 	APP_ENV=$(APP_ENV) $(UV) run uvicorn src.main:app --port $(APP_PORT) --reload
 
 run-ui: ## Run the Chainlit UI (http://localhost:8000)
-	APP_ENV=$(APP_ENV) $(UV) run chainlit run ui/app_chainlit.py --port $(UI_PORT)
+	APP_ENV=$(APP_ENV) CHAINLIT_APP_ROOT=ui $(UV) run python -m chainlit run ui/app_chainlit.py --port $(UI_PORT)
 
 # ==============================================================================
 # Production shortcuts
@@ -108,4 +111,4 @@ ingest-qdrant-prod: ## Shortcut: run `ingest` with APP_ENV=production
 # ==============================================================================
 clean: ## Remove Python caches
 	find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
-	rm -rf .pytest_cache .ruff_cache .mypy_cache
+	rm -rf .pytest_cache .ruff_cache .mypy_cache ui/.chainlit ui/.files htmlcov/ .coverage
