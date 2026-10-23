@@ -1,6 +1,7 @@
 # src/database/init_qdrant.py
 
 import asyncio
+
 from qdrant_client.models import (
     Distance,
     Modifier,
@@ -10,13 +11,17 @@ from qdrant_client.models import (
     TokenizerType,
     VectorParams,
 )
+
 from ingestion.config import settings
 from src.database.connection import async_qdrant_client
 from src.logger import logger
 
+
 async def init_qdrant_collections():
     collection_name = settings.QDRANT_COLLECTION_NAME
-    logger.info(f"Memeriksa keberadaan koleksi '{collection_name}' di Qdrant Async ({settings.ENVIRONMENT.upper()})...")
+    logger.info(
+        f"Memeriksa keberadaan koleksi '{collection_name}' di Qdrant Async ({settings.ENVIRONMENT.upper()})..."
+    )
 
     collections_response = await async_qdrant_client.get_collections()
     existing_collections = [c.name for c in collections_response.collections]
@@ -71,14 +76,16 @@ async def init_qdrant_collections():
         field_name="uu_id",
         field_schema="keyword",
     )
-    
+
     logger.info(f"Koleksi '{collection_name}' sukses dikonfigurasi.")
 
 
 async def run_qdrant_initialization():
     try:
-        logger.info(f"=== MEMULAI INISIALISASI QDRANT HYBRID [{settings.ENVIRONMENT.upper()}] ===")
-        
+        logger.info(
+            f"=== MEMULAI INISIALISASI QDRANT HYBRID [{settings.ENVIRONMENT.upper()}] ==="
+        )
+
         # Eksekusi fungsi inisialisasi menggunakan objek koneksi pasif Anda
         await init_qdrant_collections()
 

@@ -71,7 +71,10 @@ async def output_guard_node(state: LegalAgentState) -> dict:
     # TAHAP 2: VALIDASI GEMINI (SEMANTIK / EVALUASI MAKNA)
     # ---------------------------------------------------------
     formatted_docs = "\n".join(
-        [f"{d.get('pasal', 'Pasal N/A')}: {d.get('text_parent', d.get('text_child', ''))}" for d in retrieved_docs]
+        [
+            f"{d.get('pasal', 'Pasal N/A')}: {d.get('text_parent', d.get('text_child', ''))}"
+            for d in retrieved_docs
+        ]
     )
     user_query = (
         f"DOKUMEN_ASLI_RETRIEVAL:\n{formatted_docs}\n\nJAWABAN_AI:\n{final_answer}"

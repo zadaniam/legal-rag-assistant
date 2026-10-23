@@ -72,10 +72,14 @@ async def chat_with_legal_agent(payload: ChatRequest):
                 citations_output.append(
                     {
                         "uu_id": doc.get("uu_id", "UU"),
-                        "bab": doc.get("bab", "N/A"),          # Tambahkan field bab baru
-                        "pasal": str(doc.get("pasal", "")),    # Sekarang otomatis berisi string "Pasal X"
+                        "bab": doc.get("bab", "N/A"),  # Tambahkan field bab baru
+                        "pasal": str(
+                            doc.get("pasal", "")
+                        ),  # Sekarang otomatis berisi string "Pasal X"
                         "text_child": doc.get("text_child", ""),
-                        "text_parent": doc.get("text_parent", "") # Tambahkan parent sebagai rujukan sekunder jika frontend butuh pop-up full pasal
+                        "text_parent": doc.get(
+                            "text_parent", ""
+                        ),  # Tambahkan parent sebagai rujukan sekunder jika frontend butuh pop-up full pasal
                     }
                 )
 

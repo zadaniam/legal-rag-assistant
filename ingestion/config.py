@@ -1,12 +1,16 @@
 # config.py
 import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # 1. Tentukan berkas .env mana yang akan dibaca berdasarkan argumen Makefile (APP_ENV)
 APP_ENV = os.getenv("APP_ENV", "development")
 ENV_FILE = ".env.production" if APP_ENV == "production" else ".env.development"
 
-print(f"[CONFIG] Memuat konfigurasi lingkungan: {APP_ENV.upper()} dari berkas {ENV_FILE}")
+print(
+    f"[CONFIG] Memuat konfigurasi lingkungan: {APP_ENV.upper()} dari berkas {ENV_FILE}"
+)
+
 
 class Settings(BaseSettings):
     ENVIRONMENT: str = APP_ENV
@@ -29,8 +33,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
         env_file_encoding="utf-8",
-        extra="ignore"  # Mengabaikan variabel ekstra di file env agar tidak crash
+        extra="ignore",  # Mengabaikan variabel ekstra di file env agar tidak crash
     )
+
 
 # Ekspor objek global tunggal (Singleton)
 settings = Settings()

@@ -26,6 +26,10 @@ async def test_legal_search_node_multi_query_integration(
     # 2. Simulasikan respon Qdrant yang BERBEDA untuk masing-masing kueri paralel
     # Respon untuk Kueri 1 (Pesangon)
     mock_point_pesangon = MagicMock()
+    mock_point_pesangon.id = 101  # <-- PERBAIKAN: id unik untuk pesangon
+    mock_point_pesangon.score = (
+        0.9542  # <-- PERBAIKAN: score float untuk format desimal log
+    )
     mock_point_pesangon.payload = {
         "uu_id": "uu_ketenagakerjaan_2003",
         "pasal": "Pasal 156",
@@ -38,6 +42,12 @@ async def test_legal_search_node_multi_query_integration(
 
     # Respon untuk Kueri 2 (BPJS)
     mock_point_bpjs = MagicMock()
+    mock_point_bpjs.id = (
+        202  # <-- PERBAIKAN: id berbeda agar tidak disaring oleh deduplikasi seen_ids
+    )
+    mock_point_bpjs.score = (
+        0.8819  # <-- PERBAIKAN: score float untuk format desimal log
+    )
     mock_point_bpjs.payload = {
         "uu_id": "uu_bpjs_2011",
         "pasal": "Pasal 37",
@@ -59,7 +69,6 @@ async def test_legal_search_node_multi_query_integration(
             {"query": "aturan uang pesangon", "target_uu": "uu_ketenagakerjaan_2003"},
             {"query": "syarat klaim JHT BPJS", "target_uu": "Semua"},
         ],
-
         "retrieved_documents": [],
         "system_status": "clear",
         "final_answer": "",

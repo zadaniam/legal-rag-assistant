@@ -39,7 +39,7 @@ async def test_legal_reasoner_substance_query_success(mock_generate_content):
     mock_state: LegalAgentState = {
         "messages": [HumanMessage(content="Berapa pesangon PHK?")],
         "search_filters": {"is_chitchat": False},
-                "retrieved_documents": [
+        "retrieved_documents": [
             {
                 "uu_id": "uu_ketenagakerjaan_2003",
                 "bab": "BAB XII PEMUTUSAN HUBUNGAN KERJA",

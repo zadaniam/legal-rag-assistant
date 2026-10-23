@@ -1,7 +1,8 @@
 # tests/unit/test_parser.py
-import os
 import pytest
+
 from ingestion.parser_rag import parse_markdown_to_object
+
 
 @pytest.fixture
 def sample_markdown_file(tmp_path):
@@ -34,7 +35,9 @@ def test_parse_markdown_to_object_success(sample_markdown_file):
 
     # 3. ASSERT: Validasi output
     assert isinstance(parsed_result, list), "Output parser harus berbentuk List"
-    assert len(parsed_result) == 3, "Harusnya menghasilkan 3 objek pasal (Pasal 1, Pasal 2, Pasal 3)"
+    assert len(parsed_result) == 3, (
+        "Harusnya menghasilkan 3 objek pasal (Pasal 1, Pasal 2, Pasal 3)"
+    )
 
     # --- Pengujian Pasal 1 (BAB I) ---
     pasal_1 = parsed_result[0]
@@ -46,7 +49,9 @@ def test_parse_markdown_to_object_success(sample_markdown_file):
 
     # --- Pengujian Pasal 2 (Pastikan mewarisi BAB I yang sama) ---
     pasal_2 = parsed_result[1]
-    assert pasal_2["bab"] == "BAB I KETENTUAN UMUM", "Gagal mewariskan BAB I ke pasal di bawahnya"
+    assert pasal_2["bab"] == "BAB I KETENTUAN UMUM", (
+        "Gagal mewariskan BAB I ke pasal di bawahnya"
+    )
     assert pasal_2["pasal"] == "Pasal 2"
 
     # --- Pengujian Pasal 3 (Pastikan beralih ke BAB II secara dinamis) ---

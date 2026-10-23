@@ -15,8 +15,10 @@ from src.agent.state import LegalAgentState
     "src.agent.nodes.search.async_qdrant_client.query_points", new_callable=AsyncMock
 )
 async def test_legal_search_node_multi_uu_success(mock_query_points, mock_embed_text):
-    # 1. Siapkan mock data ScoredPoint dari Qdrant
+    # 1. Siapkan mock data ScoredPoint dari Qdrant dengan atribut id dan score yang valid
     mock_point = MagicMock()
+    mock_point.id = 12345  # <-- PERBAIKAN: Berikan tipe data integer/string untuk id
+    mock_point.score = 0.8765  # <-- PERBAIKAN: Berikan tipe data float untuk score agar bisa diformat :.4f
     mock_point.payload = {
         "uu_id": "uu_ketenagakerjaan_2003",
         "pasal": "Pasal 156",
@@ -38,7 +40,10 @@ async def test_legal_search_node_multi_uu_success(mock_query_points, mock_embed_
         "messages": [],
         "summary_memory": "",
         "search_payloads": [
-            {"query": "pesangon ketenagakerjaan", "target_uu": "uu_ketenagakerjaan_2003"},
+            {
+                "query": "pesangon ketenagakerjaan",
+                "target_uu": "uu_ketenagakerjaan_2003",
+            },
             {"query": "aturan lembur", "target_uu": "Semua"},
         ],
         "retrieved_documents": [],

@@ -101,5 +101,9 @@ async def context_manager_node(state: LegalAgentState) -> dict:
         fallback_payload = [{"query": user_message, "target_uu": "Semua"}]
         return {
             "search_payloads": fallback_payload,
-            "search_filters": {"is_chitchat": False, "chitchat_response": None, "target_uu": "Semua"},
+            "search_filters": {
+                "is_chitchat": False,
+                "chitchat_response": None,
+                "target_uu": "Semua",
+            },
         }

@@ -14,14 +14,20 @@ from src.agent.state import LegalAgentState
 async def test_output_guard_clear_success(mock_generate_content):
     # PERBAIKAN 2: Gunakan AsyncMock agar objek respons bisa di-await
     mock_response = AsyncMock()
-    mock_response.text = '{"analisis_perbandingan": "Klaim AI sesuai dokumen.", "kesimpulan": "AMAN"}'
+    mock_response.text = (
+        '{"analisis_perbandingan": "Klaim AI sesuai dokumen.", "kesimpulan": "AMAN"}'
+    )
     mock_generate_content.return_value = mock_response
 
     mock_state: LegalAgentState = {
         "search_filters": {"is_chitchat": False},
         "final_answer": "Berdasarkan Pasal 156, Anda berhak mendapat pesangon.",
         "retrieved_documents": [
-            {"pasal": "Pasal 156", "text_parent": "Aturan asli pasal 156", "text_child": "Hak pesangon"}
+            {
+                "pasal": "Pasal 156",
+                "text_parent": "Aturan asli pasal 156",
+                "text_child": "Hak pesangon",
+            }
         ],
     }
 
@@ -37,7 +43,11 @@ async def test_output_guard_blocked_by_regex():
         "search_filters": {"is_chitchat": False},
         "final_answer": "Berdasarkan Pasal 999 (Fiktif), Anda berhak libur setahun.",
         "retrieved_documents": [
-            {"pasal": "Pasal 156", "text_parent": "Aturan asli pasal 156", "text_child": "Hak pesangon"}
+            {
+                "pasal": "Pasal 156",
+                "text_parent": "Aturan asli pasal 156",
+                "text_child": "Hak pesangon",
+            }
         ],
     }
 
@@ -57,7 +67,7 @@ async def test_output_guard_blocked_by_llm_semantic(mock_generate_content):
     # Mengikuti OutputAuditorSchema JSON format asli nodenya
     mock_response.text = '{"analisis_perbandingan": "AI membalikkan makna aturan asli.", "kesimpulan": "HALUSINASI"}'
     mock_generate_content.return_value = mock_response
-    
+
     # 2. Siapkan state di mana nomor pasal BENAR (Pasal 156 ada di retrieval),
     # tetapi isi jawabannya memanipulasi hukum (menyebut perusahaan bisa mangkir bayar)
     mock_state: LegalAgentState = {
@@ -67,7 +77,7 @@ async def test_output_guard_blocked_by_llm_semantic(mock_generate_content):
             {
                 "pasal": "Pasal 156",
                 "text_parent": "Pengusaha wajib membayar uang pesangon jika terjadi PHK.",
-                "text_child": "Kewajiban pembayaran pesangon"
+                "text_child": "Kewajiban pembayaran pesangon",
             }
         ],
     }
