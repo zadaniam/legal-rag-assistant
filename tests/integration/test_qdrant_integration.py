@@ -31,7 +31,7 @@ async def test_legal_search_node_success():
         "search_payloads": [
             {
                 "query": "hak pekerja perempuan melahirkan cuti",
-                "target_uu": "UU Ketenagakerjaan",
+                "target_uu": "uu_ketenagakerjaan_2003",  # <-- PERBAIKAN: Disesuaikan dengan unit test (uu_id di DB)
             }
         ],
         "retrieved_documents": [],
@@ -64,7 +64,9 @@ async def test_legal_search_node_success():
     assert "pasal" in first_doc
     assert "text_child" in first_doc
     assert "text_parent" in first_doc
-    assert first_doc["status_keberlakuan"] == "aktif"
+    assert (
+        first_doc["status_keberlakuan"] == "berlaku"
+    )  # <-- PERBAIKAN: Diubah menjadi 'berlaku' sesuai filter search.py
 
 
 async def test_legal_search_node_empty_payload():
