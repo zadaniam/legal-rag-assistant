@@ -87,7 +87,22 @@ async def legal_search_node(state: LegalAgentState) -> dict:
                 limit=3,
                 with_payload=True,
             )
-            return [point.payload for point in response.points if point.payload]
+
+            # 🎯 PERBAIKAN: Menyusun detail informasi dokumen hasil retrieval (Hanya untuk keperluan LOGGING lokal)
+            detailed_points = []
+            for point in response.points:
+                if point.payload:
+                    detailed_points.append(
+                        {
+                            "id": point.id,
+                            "score": point.score,  # Skor hasil penggabungan RRF
+                            "triggered_by_query": query_text,  # Query pencari asal dari dekomposisi
+                            "target_uu_filter": target_uu,
+                            "payload": point.payload,  # Isi pasal hukum asli
+                        }
+                    )
+            return detailed_points
+
         except Exception as e:
             logger.error(f"Worker Qdrant Hybrid gagal pada kueri '{query_text}': {e}")
             return []
@@ -96,12 +111,28 @@ async def legal_search_node(state: LegalAgentState) -> dict:
     tasks = [search_qdrant_worker(i, p) for i, p in enumerate(search_payloads)]
     batch_results = await asyncio.gather(*tasks)
 
-    # 4. Satukan dokumen hasil pencarian dan eliminasi duplikasi data
+    # 4. Satukan dokumen hasil pencarian dan eliminasi duplikasi data berdasarkan ID Point
     all_results = []
+    seen_ids = set()  # Menggunakan set untuk tracking duplikasi ID secara instan
+
     for res_list in batch_results:
         for doc in res_list:
-            if doc not in all_results:
-                all_results.append(doc)
+            point_id = doc["id"]
+
+            if point_id not in seen_ids:
+                seen_ids.add(point_id)
+
+                # 🎯 KUNCI UTAMA: Yang dimasukkan ke state tetap HANYA payload-nya saja
+                # Ini menjamin Node Reasoner Anda TIDAK AKAN rusak/error.
+                all_results.append(doc["payload"])
+
+                # Cetak log super detail ke terminal untuk kebutuhan monitoring Anda
+                logger.info(
+                    f"-> [RETRIEVED] ID: {point_id} | "
+                    f"Score: {doc['score']:.4f} | "
+                    f"Pasal: {doc['payload'].get('pasal', 'N/A')} | "
+                    f"Query: '{doc['triggered_by_query']}'"
+                )
 
     logger.info(
         f"Qdrant Search selesai. Berhasil mengumpulkan {len(all_results)} dokumen hukum resmi."
