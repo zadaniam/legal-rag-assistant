@@ -11,7 +11,8 @@ from src.database.connection import async_qdrant_client
 
 async def prepare_and_upload_to_qdrant(prepared_points: list[dict]):
     """Modul asinkron menggunakan strategi Time-Window Batching untuk Free Tier Google."""
-    ai_client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+    ai_client = genai.Client(api_key=settings.GEMINI_API_KEY.get_secret_value())
     qdrant_points = []
 
     # 1. STRATEGI PILIHAN ANDA: Tentukan ukuran batch di bawah limit 100 RPM

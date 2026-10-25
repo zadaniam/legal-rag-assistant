@@ -69,6 +69,7 @@ jobs:
             LOG_LEVEL=${{ vars.LOG_LEVEL }}
             LANGSMITH_TRACING=${{ vars.LANGSMITH_TRACING }}
             LANGSMITH_PROJECT=${{ vars.LANGSMITH_PROJECT }}
+            QDRANT_COLLECTION_NAME=${{ vars.QDRANT_COLLECTION_NAME }}
           secrets: |
             QDRANT_URL=QDRANT_URL:latest
             POSTGRES_URL=POSTGRES_URL:latest

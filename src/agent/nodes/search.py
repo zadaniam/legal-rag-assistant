@@ -5,6 +5,7 @@ from typing import Any
 from qdrant_client import models
 
 from src.agent.state import LegalAgentState
+from src.config import settings
 from src.database.connection import async_qdrant_client
 from src.logger import logger
 from src.utils.embeddings import embed_text
@@ -20,7 +21,7 @@ async def legal_search_node(state: LegalAgentState) -> dict:
         logger.info("Tidak ada payload pencarian. Melewati proses Qdrant.")
         return {"retrieved_documents": []}
 
-    collection_name = "legal_knowledge_base"
+    collection_name = settings.QDRANT_COLLECTION_NAME 
 
     # 1. Kumpulkan semua string query dari seluruh payload hasil decomposition
     queries_to_embed = [p.get("query", "") for p in search_payloads]
@@ -61,10 +62,6 @@ async def legal_search_node(state: LegalAgentState) -> dict:
                 f"Menembak Qdrant Hybrid Search secara paralel: '{query_text}' | Filter: {target_uu}"
             )
 
-            # 🎯 PERBAIKAN SINTAKSIS HYBRID TERBARU Sesuai Dokumentasi Resmi:
-            # 1. Menggunakan models.Prefetch dengan penamaan key yang sinkron ("text_dense" & "text_sparse").
-            # 2. Menggunakan pembungkus models.Document(model="Qdrant/bm25") untuk memicu server-side BM25 inference.
-            # 3. Menggunakan models.FusionQuery(fusion=models.Fusion.RRF) untuk penggabungan peringkat yang valid.
             response = await async_qdrant_client.query_points(
                 collection_name=collection_name,
                 prefetch=[
@@ -111,30 +108,32 @@ async def legal_search_node(state: LegalAgentState) -> dict:
     tasks = [search_qdrant_worker(i, p) for i, p in enumerate(search_payloads)]
     batch_results = await asyncio.gather(*tasks)
 
-    # 4. Satukan dokumen hasil pencarian dan eliminasi duplikasi data berdasarkan ID Point
+    # 4. Satukan dokumen hasil pencarian dan eliminasi duplikasi data berdasarkan konteks induk (Parent)
     all_results = []
-    seen_ids = set()  # Menggunakan set untuk tracking duplikasi ID secara instan
+    seen_parents = set()  
 
     for res_list in batch_results:
         for doc in res_list:
-            point_id = doc["id"]
+            # Ambil parent_id dari dalam payload dokumen
+            payload_data = doc.get("payload", {})
+            parent_id = payload_data.get("parent_id")
+            point_id = doc.get("id") # Tetap diambil untuk log monitoring
 
-            if point_id not in seen_ids:
-                seen_ids.add(point_id)
+            # JIKA parent_id belum pernah diambil, loloskan dokumen
+            if parent_id not in seen_parents:
+                seen_parents.add(parent_id)
+                all_results.append(payload_data)
 
-                # 🎯 KUNCI UTAMA: Yang dimasukkan ke state tetap HANYA payload-nya saja
-                # Ini menjamin Node Reasoner Anda TIDAK AKAN rusak/error.
-                all_results.append(doc["payload"])
-
-                # Cetak log super detail ke terminal untuk kebutuhan monitoring Anda
                 logger.info(
-                    f"-> [RETRIEVED] ID: {point_id} | "
+                    f"-> [RETRIEVED UNIQ] Parent ID: {parent_id} | Point ID: {point_id} | "
                     f"Score: {doc['score']:.4f} | "
-                    f"Pasal: {doc['payload'].get('pasal', 'N/A')} | "
+                    f"Pasal: {payload_data.get('pasal', 'N/A')} | "
                     f"Query: '{doc['triggered_by_query']}'"
                 )
+            else:
+                logger.debug(f"-> [SKIPPED DUPLICATE PASAL] Parent ID: {parent_id} sudah terwakili.")
 
     logger.info(
-        f"Qdrant Search selesai. Berhasil mengumpulkan {len(all_results)} dokumen hukum resmi."
+        f"Qdrant Search selesai. Berhasil mengumpulkan {len(all_results)} dokumen hukum resmi tanpa duplikasi pasal."
     )
     return {"retrieved_documents": all_results}

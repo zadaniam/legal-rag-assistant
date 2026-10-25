@@ -1,33 +1,31 @@
 # src/config.py
 import os
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # 1. Deteksi lingkungan global dari OS (default ke 'development')
 app_env = os.getenv("APP_ENV", "development").lower()
 
-
 class Settings(BaseSettings):
-    ENVIRONMENT: str = "development"
+    ENVIRONMENT: str = Field(default="development", validation_alias="APP_ENV")
     LOG_LEVEL: str = "INFO"
 
     GEMINI_API_KEY: SecretStr
     QDRANT_URL: str
-    QDRANT_COLLECTION_NAME: str = "legal_knowledge_base"
+    QDRANT_COLLECTION_NAME: str = "legal_knowledge_base_dev"
     QDRANT_API_KEY: SecretStr | None = None
     POSTGRES_URL: str
 
     LANGSMITH_TRACING: str = "true"
     LANGSMITH_API_KEY: SecretStr
-    LANGSMITH_PROJECT: str = "asisten-legal-rag"
+    LANGSMITH_PROJECT: str = "asisten-legal-rag-dev"
 
     model_config = SettingsConfigDict(
         env_file=f".env.{app_env}",
         env_file_encoding="utf-8",
         extra="ignore"
     )
-
 
 settings = Settings()
 
