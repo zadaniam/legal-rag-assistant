@@ -4,8 +4,8 @@ from typing import Any
 
 from qdrant_client import models
 
-from src.config import settings 
 from src.agent.state import LegalAgentState
+from src.config import settings
 from src.database.connection import async_qdrant_client
 from src.logger import logger
 from src.utils.embeddings import embed_text
