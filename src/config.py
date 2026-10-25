@@ -1,15 +1,14 @@
 # src/config.py
 import os
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # 1. Deteksi lingkungan global dari OS (default ke 'development')
 app_env = os.getenv("APP_ENV", "development").lower()
 
-
 class Settings(BaseSettings):
-    ENVIRONMENT: str = "development"
+    ENVIRONMENT: str = Field(default="development", validation_alias="APP_ENV")
     LOG_LEVEL: str = "INFO"
 
     GEMINI_API_KEY: SecretStr
@@ -27,7 +26,6 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore"
     )
-
 
 settings = Settings()
 
