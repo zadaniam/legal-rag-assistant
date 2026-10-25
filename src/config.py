@@ -14,13 +14,13 @@ class Settings(BaseSettings):
 
     GEMINI_API_KEY: SecretStr
     QDRANT_URL: str
-    QDRANT_COLLECTION_NAME: str = "legal_knowledge_base"
+    QDRANT_COLLECTION_NAME: str = "legal_knowledge_base_dev"
     QDRANT_API_KEY: SecretStr | None = None
     POSTGRES_URL: str
 
     LANGSMITH_TRACING: str = "true"
     LANGSMITH_API_KEY: SecretStr
-    LANGSMITH_PROJECT: str = "asisten-legal-rag"
+    LANGSMITH_PROJECT: str = "asisten-legal-rag-dev"
 
     model_config = SettingsConfigDict(
         env_file=f".env.{app_env}",
