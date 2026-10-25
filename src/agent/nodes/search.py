@@ -4,6 +4,7 @@ from typing import Any
 
 from qdrant_client import models
 
+from src.config import settings 
 from src.agent.state import LegalAgentState
 from src.database.connection import async_qdrant_client
 from src.logger import logger
@@ -20,7 +21,7 @@ async def legal_search_node(state: LegalAgentState) -> dict:
         logger.info("Tidak ada payload pencarian. Melewati proses Qdrant.")
         return {"retrieved_documents": []}
 
-    collection_name = "legal_knowledge_base"
+    collection_name = settings.QDRANT_COLLECTION_NAME 
 
     # 1. Kumpulkan semua string query dari seluruh payload hasil decomposition
     queries_to_embed = [p.get("query", "") for p in search_payloads]
