@@ -12,7 +12,7 @@ from qdrant_client.models import (
     VectorParams,
 )
 
-from ingestion.config import settings
+from src.config import settings
 from src.database.connection import async_qdrant_client
 from src.logger import logger
 
@@ -27,15 +27,24 @@ async def init_qdrant_collections():
     existing_collections = [c.name for c in collections_response.collections]
 
     if collection_name in existing_collections:
-        logger.warning(
-            f"Koleksi lama '{collection_name}' terdeteksi. Menghapus untuk migrasi ke Hybrid Search..."
-        )
-        try:
-            await async_qdrant_client.delete_collection(collection_name=collection_name)
-            logger.info(f"Koleksi lama '{collection_name}' berhasil dihapus.")
-        except Exception as e:
-            logger.error(f"Gagal menghapus koleksi lama: {e}")
-            raise e
+        if settings.ENVIRONMENT.lower() in ["dev", "development", "local"]:
+            logger.warning(
+                f"Koleksi lama '{collection_name}' terdeteksi di mode DEV. Menghapus untuk migrasi ke Hybrid Search..."
+            )
+            try:
+                await async_qdrant_client.delete_collection(collection_name=collection_name)
+                logger.info(f"Koleksi lama '{collection_name}' berhasil dihapus.")
+            except Exception as e:
+                logger.error(f"Gagal menghapus koleksi lama: {e}")
+                raise e
+        else:
+            logger.error(
+                f"BERBAHAYA: Koleksi '{collection_name}' sudah ada di lingkungan {settings.ENVIRONMENT.upper()}! "
+                "Proses dihentikan secara otomatis untuk mencegah kehilangan data produksi. "
+                "Jika ingin melakukan perubahan skema, lakukan migrasi manual atau ubah nama koleksi."
+            )
+            # Hentikan program dengan menaikkan ValueError
+            raise ValueError(f"Dilarang keras menimpa koleksi aktif di lingkungan {settings.ENVIRONMENT}")
 
     logger.info(
         f"Membuat koleksi baru '{collection_name}' dengan arsitektur Hybrid (Dense + Sparse/BM25)..."
