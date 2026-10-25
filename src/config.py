@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     GEMINI_API_KEY: SecretStr
     QDRANT_URL: str
-    # API Key dibuat opsional agar tidak crash di lokal development
+    QDRANT_COLLECTION_NAME: str = "legal_knowledge_base"
     QDRANT_API_KEY: SecretStr | None = None
     POSTGRES_URL: str
 
@@ -22,17 +22,17 @@ class Settings(BaseSettings):
     LANGSMITH_API_KEY: SecretStr
     LANGSMITH_PROJECT: str = "asisten-legal-rag"
 
-    # Membaca file secara dinamis berdasarkan nilai app_env
     model_config = SettingsConfigDict(
         env_file=f".env.{app_env}",
         env_file_encoding="utf-8",
-        extra="ignore",  # Mengabaikan variabel tambahan seperti POSTGRES_PASSWORD agar tidak error
+        extra="ignore"
     )
 
 
 settings = Settings()
 
-# === KUNCI CLEAN CODE: Suntikkan ke OS secara otomatis di sini ===
-os.environ["LANGSMITH_TRACING"] = settings.LANGSMITH_TRACING
-os.environ["LANGSMITH_API_KEY"] = settings.LANGSMITH_API_KEY.get_secret_value()
-os.environ["LANGSMITH_PROJECT"] = settings.LANGSMITH_PROJECT
+def setup_telemetry_environment():
+    """Menyuntikkan kredensial tracing ke environment OS secara aman saat aplikasi start."""
+    os.environ["LANGSMITH_TRACING"] = settings.LANGSMITH_TRACING
+    os.environ["LANGSMITH_API_KEY"] = settings.LANGSMITH_API_KEY.get_secret_value()
+    os.environ["LANGSMITH_PROJECT"] = settings.LANGSMITH_PROJECT

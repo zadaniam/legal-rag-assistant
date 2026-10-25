@@ -5,7 +5,7 @@ from google import genai
 from google.genai import types
 from qdrant_client import models
 
-from ingestion.config import settings
+from src.config import settings
 from src.database.connection import async_qdrant_client
 
 
