@@ -1,18 +1,24 @@
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0 # Versi hook dasar dari pre-commit
+    rev: v5.0.0
     hooks:
-      - id: check-yaml # Memastikan file .yaml tidak typo syntax
-      - id: end-of-file-fixer # Memastikan setiap file diakhiri baris kosong (POSIX standard)
-      - id: trailing-whitespace # Menghapus spasi gaib di akhir baris kodingan
-      - id: check-added-large-files # Mencegah file besar (seperti PDF hukum/DB) tidak sengaja masuk Git
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: detect-private-key
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4 # Versi hook Ruff (linter & formatter kilat)
+    rev: v0.16.6
     hooks:
-      # 1. Menjalankan Linter (cek error, unused imports, dll)
-      - id: ruff
-        args: [ --fix ] # Otomatis benerin error yang bisa diperbaiki
-      # 2. Menjalankan Formatter (merapikan layout kode sesuai aturan ruff Anda)
+      - id: ruff-check
+        args: [ --fix ]
       - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.3.1
+    hooks:
+      - id: mypy
