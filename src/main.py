@@ -19,16 +19,18 @@ from src.logger import logger
 async def lifespan(app: FastAPI):
     # [STARTUP]: Dieksekusi otomatis SAAT server uvicorn dinyalakan
     try:
-         # A. Inisialisasi Environment Telemetri LangSmith (Paling Pertama)
+        # A. Inisialisasi Environment Telemetri LangSmith (Paling Pertama)
         from src.config import setup_telemetry_environment
+
         setup_telemetry_environment()
         logger.info("Environment telemetri LangSmith berhasil dikonfigurasi.")
-        
+
         # B. Buka koneksi fisik ke Postgres Pool & Qdrant Async
         await init_database_connections()
 
         # C. Kompilasi blueprint LangGraph di dalam event loop yang aktif
         from src.agent.graph import compile_legal_graph
+
         compile_legal_graph()
 
         logger.info("=== BACKEND AGENTIC RAG ASYNC READY TO SERVE ===")

@@ -31,6 +31,7 @@ async def test_api_chat_validation_error_on_empty_payload():
     assert response.status_code == 422
     assert "detail" in response.json()
 
+
 @pytest.mark.asyncio
 @patch("src.api.v1.chat.compile_legal_graph")
 async def test_api_chat_endpoint_success(mock_compile_legal_graph):

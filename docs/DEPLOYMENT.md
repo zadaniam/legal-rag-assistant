@@ -296,4 +296,3 @@ These are documented as-is (not fixed) to keep the deployment reference accurate
 
 _See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for how the application itself is
 structured. For local development and running the stack, see the root `README.md`._
-

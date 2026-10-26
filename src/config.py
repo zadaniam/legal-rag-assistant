@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # 1. Deteksi lingkungan global dari OS (default ke 'development')
 app_env = os.getenv("APP_ENV", "development").lower()
 
+
 class Settings(BaseSettings):
     ENVIRONMENT: str = Field(default="development", validation_alias="APP_ENV")
     LOG_LEVEL: str = "INFO"
@@ -22,12 +23,12 @@ class Settings(BaseSettings):
     LANGSMITH_PROJECT: str = "asisten-legal-rag-dev"
 
     model_config = SettingsConfigDict(
-        env_file=f".env.{app_env}",
-        env_file_encoding="utf-8",
-        extra="ignore"
+        env_file=f".env.{app_env}", env_file_encoding="utf-8", extra="ignore"
     )
 
+
 settings = Settings()
+
 
 def setup_telemetry_environment():
     """Menyuntikkan kredensial tracing ke environment OS secara aman saat aplikasi start."""

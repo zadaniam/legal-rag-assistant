@@ -21,7 +21,7 @@ def parse_markdown_to_object(md_file_path: str, uu_id: str) -> list[dict]:
     parsed_laws = []
     for doc in documents:
         metadata = doc.metadata
-        
+
         nama_pasal = metadata.get("pasal", "").strip()
         isi_konten_pasal = doc.page_content.strip()
 

@@ -41,7 +41,7 @@ CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port $PORT"]
 # ==============================================================================
 FROM base AS frontend
 
-# Daftarkan direktori /app ke dalam sistem path Python kontainer frontend 
+# Daftarkan direktori /app ke dalam sistem path Python kontainer frontend
 # agar folder 'src' dapat ditemukan saat dipanggil dari dalam folder 'ui'
 ENV PYTHONPATH="/app"
 

@@ -32,7 +32,9 @@ async def init_qdrant_collections():
                 f"Koleksi lama '{collection_name}' terdeteksi di mode DEV. Menghapus untuk migrasi ke Hybrid Search..."
             )
             try:
-                await async_qdrant_client.delete_collection(collection_name=collection_name)
+                await async_qdrant_client.delete_collection(
+                    collection_name=collection_name
+                )
                 logger.info(f"Koleksi lama '{collection_name}' berhasil dihapus.")
             except Exception as e:
                 logger.error(f"Gagal menghapus koleksi lama: {e}")
@@ -44,7 +46,9 @@ async def init_qdrant_collections():
                 "Jika ingin melakukan perubahan skema, lakukan migrasi manual atau ubah nama koleksi."
             )
             # Hentikan program dengan menaikkan ValueError
-            raise ValueError(f"Dilarang keras menimpa koleksi aktif di lingkungan {settings.ENVIRONMENT}")
+            raise ValueError(
+                f"Dilarang keras menimpa koleksi aktif di lingkungan {settings.ENVIRONMENT}"
+            )
 
     logger.info(
         f"Membuat koleksi baru '{collection_name}' dengan arsitektur Hybrid (Dense + Sparse/BM25)..."
