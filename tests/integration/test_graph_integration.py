@@ -23,7 +23,7 @@ async def test_legal_assistant_e2e_substance_query():
     input_state = {
         "messages": [
             HumanMessage(
-                content="Berapa lama uang pesangon yang saya dapatkan kalau baru bekerja kurang dari 1 tahun menurut undang-undang cipta kerja?"
+                content="Berapa lama uang pesangon yang saya dapatkan kalau baru bekerja kurang dari 1 tahun menurut undang-undang ketenagakerjaan?"
             )
         ]
     }

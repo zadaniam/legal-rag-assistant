@@ -36,6 +36,7 @@ async def test_legal_search_node_multi_query_integration(
         "text_child": "Komponen pesangon...",
         "text_parent": "Aturan Uang Pesangon",
         "status_keberlakuan": "berlaku",
+        "parent_id": "parent-uu-ketenagakerjaan-156",
     }
     mock_resp_1 = MagicMock()
     mock_resp_1.points = [mock_point_pesangon]
@@ -54,6 +55,7 @@ async def test_legal_search_node_multi_query_integration(
         "text_child": "Klaim JHT...",
         "text_parent": "Aturan Klaim JHT",
         "status_keberlakuan": "berlaku",
+        "parent_id": "parent-uu-bpjs-37",
     }
     mock_resp_2 = MagicMock()
     mock_resp_2.points = [mock_point_bpjs]

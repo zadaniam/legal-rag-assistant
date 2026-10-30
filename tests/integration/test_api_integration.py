@@ -1,6 +1,6 @@
 # tests/integration/test_api_integration.py
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
@@ -48,11 +48,25 @@ async def test_api_chat_endpoint_success(mock_compile_legal_graph):
             }
         }
 
+    # 2. Mock hasil kembalian dari await legal_rag_graph.aget_state(config)
+    # Membuat objek tiruan snapshot yang memiliki properti `.values`
+    mock_snapshot = MagicMock()
+    mock_snapshot.values = {
+        "final_answer": "Halo! Ada yang bisa saya bantu terkait hukum ketenagakerjaan?",
+        "system_status": "clear",
+        "search_filters": {"is_chitchat": True},
+        "retrieved_documents": [],
+    }
+
+    # 3. Rakit mock graph utama
     mock_graph = MagicMock()
     mock_graph.astream = mock_astream
+    # KUNCI PERBAIKAN: Gunakan AsyncMock agar bisa di-await dan kembalikan mock_snapshot
+    mock_graph.aget_state = AsyncMock(return_value=mock_snapshot)
+
     mock_compile_legal_graph.return_value = mock_graph
 
-    # 2. Tembak HTTP API via httpx ASGITransport
+    # 4. Tembak HTTP API via httpx ASGITransport
     async with AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as ac:
@@ -67,13 +81,13 @@ async def test_api_chat_endpoint_success(mock_compile_legal_graph):
     assert response.status_code == 200
     assert "text/event-stream" in response.headers["content-type"]
 
-    # 3. Ekstrak data JSON final_result secara instan dengan regex/substring sederhana
+    # 5. Ekstrak data JSON final_result secara instan dengan regex/substring sederhana
     final_result_line = [
         line for line in response.text.splitlines() if 'event": "final_result"' in line
     ][0]
     json_data = json.loads(final_result_line.replace("data: ", "", 1))
 
-    # 4. Validasi Integral
+    # 6. Validasi Integral
     assert json_data["session_id"] == "sesi_http_test_01"
     assert json_data["system_status"] == "clear"
     assert json_data["is_chitchat"] is True
