@@ -1,13 +1,9 @@
 # src/utils/gcp_auth.py
 
 import os
-
 import httpx
 
-from src.logger import logger
-
 BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:7000")
-
 APP_ENV = os.getenv("APP_ENV", "development").lower()
 FASTAPI_CHAT_URL = f"{BACKEND_URL}/api/v1/chat"
 
@@ -45,8 +41,8 @@ class GoogleCloudRunAuth(httpx.Auth):
                         token = response.text
                         request.headers["Authorization"] = f"Bearer {token}"
             except Exception as e:
-                logger.warning(
-                    f"Metadata server Google tidak dijangkau, melanjutkan request tanpa token: {e}"
+                print(
+                    f"WARNING: Metadata server Google tidak dijangkau, melanjutkan request tanpa token: {e}"
                 )
 
         yield request
@@ -58,5 +54,5 @@ def create_backend_client() -> httpx.AsyncClient:
         timeout=60.0,
         auth=GoogleCloudRunAuth(
             FASTAPI_CHAT_URL
-        ),  # Autentikasi disuntikkan secara pasif di sini!
+        ), 
     )
