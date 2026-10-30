@@ -10,7 +10,7 @@ on:
       - 'Dockerfile'
       - 'pyproject.toml'
       - 'uv.lock'
-      - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/cd-frontend.yml'
 
 env:
   PROJECT_ID: "project-0cb13828-a08a-466a-934"
