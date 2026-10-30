@@ -35,63 +35,57 @@ async def chat_with_legal_agent(payload: ChatRequest):
         legal_rag_graph = compile_legal_graph()
 
         async def event_generator():
-            accumulated_state = {}
-
-            # Membaca event updates murni dari LangGraph
+            # 1. Jalankan stream murni hanya untuk memberikan sinyal UI loading/node aktif
             async for chunk in legal_rag_graph.astream(
                 input_state, config=config, stream_mode="updates"
             ):
-                # Pengaman jika chunk kosong agar tidak IndexError
                 chunk_keys = list(chunk.keys())
                 if len(chunk_keys) == 0:
                     continue
 
                 node_name = chunk_keys[0]
-                node_data = chunk[node_name]
 
-                # Akumulasikan state
-                accumulated_state.update(node_data)
-                if "retrieved_documents" in node_data:
-                    accumulated_state["retrieved_documents"] = node_data[
-                        "retrieved_documents"
-                    ]
-                if "search_filters" in node_data:
-                    accumulated_state["search_filters"] = node_data["search_filters"]
-
-                # Kirim sinyal node aktif ke Chainlit
+                # Kirim sinyal node aktif ke Chainlit untuk visual progress bar
                 payload_node = {"event": "node_complete", "node": node_name}
                 yield f"data: {json.dumps(payload_node)}\n\n"
 
-            # Penyusunan payload jawaban final setelah semua node (termasuk output_guard) selesai
-            filters = accumulated_state.get("search_filters", {}) or {}
+            # 2. SOLUSI UTAMA: Ambil snapshot state TERAKHIR yang 100% utuh & valid dari LangGraph
+            graph_state = await legal_rag_graph.aget_state(config)
+            final_state = (
+                graph_state.values
+            )  # Ini adalah dictionary berisi state akhir yang komplit
+
+            # 3. Penyusunan payload jawaban final menggunakan data dari final_state yang terjamin
+            filters = final_state.get("search_filters", {}) or {}
             is_chitchat = filters.get("is_chitchat", False)
 
             citations_output = []
-            retrieved_docs = accumulated_state.get("retrieved_documents", []) or []
+            retrieved_docs = final_state.get("retrieved_documents", []) or []
             for doc in retrieved_docs:
                 citations_output.append(
                     {
                         "uu_id": doc.get("uu_id", "UU"),
-                        "bab": doc.get("bab", "N/A"),  # Tambahkan field bab baru
-                        "pasal": str(
-                            doc.get("pasal", "")
-                        ),  # Sekarang otomatis berisi string "Pasal X"
+                        "bab": doc.get("bab", "N/A"),
+                        "pasal": str(doc.get("pasal", "")),
                         "text_child": doc.get("text_child", ""),
-                        "text_parent": doc.get(
-                            "text_parent", ""
-                        ),  # Tambahkan parent sebagai rujukan sekunder jika frontend butuh pop-up full pasal
+                        "text_parent": doc.get("text_parent", ""),
                     }
                 )
 
             payload_final = {
                 "event": "final_result",
                 "session_id": payload.session_id,
-                "final_answer": accumulated_state.get("final_answer", ""),
-                "system_status": accumulated_state.get("system_status", "clear"),
+                "final_answer": final_state.get(
+                    "final_answer", ""
+                ),  # Dijamin tidak akan kosong lagi
+                "system_status": final_state.get("system_status", "clear"),
                 "is_chitchat": is_chitchat,
                 "citations": citations_output,
             }
-            # Kirim jawaban utuh yang 100% aman
+
+            logger.info(
+                f"Streaming selesai. Mengirimkan final_result untuk sesi: {payload.session_id}"
+            )
             yield f"data: {json.dumps(payload_final)}\n\n"
 
         headers = {
@@ -111,4 +105,4 @@ async def chat_with_legal_agent(payload: ChatRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Terjadi kendala teknis internal pada mesin AI: {e!s}",
-        )
+        ) from e

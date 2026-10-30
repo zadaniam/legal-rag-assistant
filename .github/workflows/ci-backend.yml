@@ -1,0 +1,55 @@
+name: Continuous Integration - Backend Testing
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'ingestion/**'
+      - 'tests/**'
+      - 'Dockerfile'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/ci-backend.yml'
+
+jobs:
+  quality-and-unit-test:
+    name: Lint, Format, and Run Unit Tests
+    runs-on: ubuntu-latest
+
+    environment: testing
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python & UV
+        uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install Dependencies
+        run: make sync
+
+      - name: Run Linter (Ruff)
+        run: make lint
+
+      - name: Check Code Formatting (Ruff)
+        run: make format
+
+      - name: Execute Unit Tests
+        env:
+          APP_ENV: ${{ vars.ENVIRONMENT }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+          LANGSMITH_PROJECT: ${{ vars.LANGSMITH_PROJECT }}
+          LANGSMITH_TRACING: ${{ vars.LANGSMITH_TRACING }}
+          QDRANT_COLLECTION_NAME: ${{ vars.QDRANT_COLLECTION_NAME }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+        run: |
+          make test-unit

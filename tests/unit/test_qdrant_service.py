@@ -25,25 +25,29 @@ async def test_prepare_and_upload_to_qdrant_success(mocker):
         }
     ]
 
-    # --- MOCKING GOOGLE GENAI CLIENT ---
-    # Membuat tiruan struktur response API dari google-genai SDK terbaru (.embeddings.values)
+    # --- MOCKING GOOGLE GENAI CLIENT (PERBAIKAN STRUKTUR ASYNC/AIO) ---
+    # 1. Mock nilai kembalian embedding array (.values)
     mock_embeddings_obj = MagicMock()
-    mock_embeddings_obj.values = [
-        0.1
-    ] * 3072  # Simulasi array dense vector 3072 dimensi
+    mock_embeddings_obj.values = [0.1] * 3072
 
     mock_embed_response = MagicMock()
-    mock_embed_response.embeddings = mock_embeddings_obj
+    mock_embed_response.embeddings = [
+        mock_embeddings_obj
+    ]  # Sesuai indeks response.embeddings[0]
 
-    # Lakukan patch / intercept pada inisialisasi genai.Client di dalam modul
-    mock_genai_client = MagicMock()
-    mock_genai_client.models.embed_content.return_value = mock_embed_response
-    mocker.patch(
-        "ingestion.qdrant_service.genai.Client", return_value=mock_genai_client
-    )
+    # 2. Buat chain mock untuk mencerminkan: ai_client.aio.models.embed_content
+    mock_ai_client = MagicMock()
+    mock_ai_client.aio = MagicMock()
+    mock_ai_client.aio.models = MagicMock()
+
+    # Karena fungsinya dipanggil dengan 'await', jadikan embed_content sebagai AsyncMock
+    mock_embed_content = AsyncMock(return_value=mock_embed_response)
+    mock_ai_client.aio.models.embed_content = mock_embed_content
+
+    # 3. Lakukan patch langsung ke target objek ai_client di modul qdrant_service
+    mocker.patch("ingestion.qdrant_service.ai_client", mock_ai_client)
 
     # --- MOCKING ASYNC QDRANT CLIENT ---
-    # Karena connection.py mengekspos objek async, kita mock method .upsert menjadi AsyncMock
     mock_upsert = AsyncMock()
     mocker.patch("ingestion.qdrant_service.async_qdrant_client.upsert", mock_upsert)
 
@@ -56,11 +60,11 @@ async def test_prepare_and_upload_to_qdrant_success(mocker):
     # 3. ASSERT: Validasi apakah interaksi kode internal sudah benar
     # =====================================================================
 
-    # A. Pastikan API Gemini dipanggil dengan argumen model yang benar (text-embedding-004)
-    mock_genai_client.models.embed_content.assert_called_once_with(
+    # A. Pastikan API Gemini dipanggil via properti .aio dengan argumen yang benar
+    mock_embed_content.assert_called_once_with(
         model="models/gemini-embedding-2",
         contents="UU BPJS [BAB I - Pasal 1]: Teks kontens child",
-        config=mocker.ANY,  # Menerima konfigurasi types.EmbedContentConfig apa pun
+        config=mocker.ANY,
     )
 
     # B. Pastikan metode database .upsert dipanggil tepat 1 kali

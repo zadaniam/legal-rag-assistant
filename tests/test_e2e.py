@@ -34,7 +34,7 @@ async def test_api_e2e_live_skenario_1_happy_path():
         response = await ac.post(
             "/api/v1/chat",
             json={
-                "message": "Berapa uang pesangon yang saya dapatkan kalau baru bekerja kurang dari 1 tahun menurut undang-undang cipta kerja?",
+                "message": "Berapa uang pesangon yang saya dapatkan kalau baru bekerja kurang dari 1 tahun menurut undang-undang ketenagakerjaan?",
                 "session_id": "api_live_e2e_session_001",
             },
         )

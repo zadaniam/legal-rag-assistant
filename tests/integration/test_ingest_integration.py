@@ -2,14 +2,12 @@
 import asyncio
 
 import pytest
-
-# Impor komponen modular asli milik Anda
-from src.config import settings
 from qdrant_client import models
 
 from ingestion.parser_rag import parse_markdown_to_object
 from ingestion.qdrant_service import prepare_and_upload_to_qdrant
 from ingestion.splitter import split_laws_into_hierarchical_points
+from src.config import settings
 from src.database.connection import async_qdrant_client
 
 

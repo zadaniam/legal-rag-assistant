@@ -1,16 +1,15 @@
-name: Deploy Legal RAG Frontend
+name: Deploy Legal RAG Backend
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'ui/**'
-      - '.chainlit/**'
+      - 'src/**'
       - 'Dockerfile'
       - 'pyproject.toml'
       - 'uv.lock'
-      - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/cd-backend.yml'
 
 env:
   PROJECT_ID: "project-0cb13828-a08a-466a-934"
@@ -18,8 +17,8 @@ env:
   GAR_REPO: "legal-rag-assistant"
 
 jobs:
-  deploy-frontend:
-    name: Build and Deploy Frontend
+  deploy-backend:
+    name: Build and Deploy Backend
     runs-on: ubuntu-latest
 
     permissions:
@@ -49,24 +48,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and Push Frontend Image
+      - name: Build and Push Backend Image
         uses: docker/build-push-action@v6
         with:
           context: .
-          target: frontend
+          target: backend
           push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/frontend:${{ github.sha }}
-          cache-from: type=gha,scope=frontend
-          cache-to: type=gha,mode=max,scope=frontend
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/backend:${{ github.sha }}
 
-      - name: Deploy Frontend to Cloud Run
+      - name: Deploy Backend to Cloud Run
+        id: deploy-backend
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: legal-rag-frontend
+          service: legal-rag-backend
           region: ${{ env.REGION }}
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/frontend:${{ github.sha }}
-          flags: '--allow-unauthenticated --network=default --subnet=default --vpc-egress=all-traffic --max-instances=5'
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/backend:${{ github.sha }}
+          flags: '--no-allow-unauthenticated --ingress=internal --max-instances=5'
           env_vars: |
             APP_ENV=${{ vars.ENVIRONMENT }}
-            BACKEND_URL=${{ vars.BACKEND_URL }}
-            
+            LOG_LEVEL=${{ vars.LOG_LEVEL }}
+            LANGSMITH_TRACING=${{ vars.LANGSMITH_TRACING }}
+            LANGSMITH_PROJECT=${{ vars.LANGSMITH_PROJECT }}
+            QDRANT_COLLECTION_NAME=${{ vars.QDRANT_COLLECTION_NAME }}
+          secrets: |
+            QDRANT_URL=QDRANT_URL:latest
+            POSTGRES_URL=POSTGRES_URL:latest
+            GEMINI_API_KEY=GEMINI_API_KEY:latest
+            QDRANT_API_KEY=QDRANT_API_KEY:latest
+            LANGSMITH_API_KEY=LANGSMITH_API_KEY:latest

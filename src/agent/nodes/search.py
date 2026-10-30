@@ -21,7 +21,7 @@ async def legal_search_node(state: LegalAgentState) -> dict:
         logger.info("Tidak ada payload pencarian. Melewati proses Qdrant.")
         return {"retrieved_documents": []}
 
-    collection_name = settings.QDRANT_COLLECTION_NAME 
+    collection_name = settings.QDRANT_COLLECTION_NAME
 
     # 1. Kumpulkan semua string query dari seluruh payload hasil decomposition
     queries_to_embed = [p.get("query", "") for p in search_payloads]
@@ -110,14 +110,14 @@ async def legal_search_node(state: LegalAgentState) -> dict:
 
     # 4. Satukan dokumen hasil pencarian dan eliminasi duplikasi data berdasarkan konteks induk (Parent)
     all_results = []
-    seen_parents = set()  
+    seen_parents = set()
 
     for res_list in batch_results:
         for doc in res_list:
             # Ambil parent_id dari dalam payload dokumen
             payload_data = doc.get("payload", {})
             parent_id = payload_data.get("parent_id")
-            point_id = doc.get("id") # Tetap diambil untuk log monitoring
+            point_id = doc.get("id")  # Tetap diambil untuk log monitoring
 
             # JIKA parent_id belum pernah diambil, loloskan dokumen
             if parent_id not in seen_parents:
@@ -131,7 +131,9 @@ async def legal_search_node(state: LegalAgentState) -> dict:
                     f"Query: '{doc['triggered_by_query']}'"
                 )
             else:
-                logger.debug(f"-> [SKIPPED DUPLICATE PASAL] Parent ID: {parent_id} sudah terwakili.")
+                logger.debug(
+                    f"-> [SKIPPED DUPLICATE PASAL] Parent ID: {parent_id} sudah terwakili."
+                )
 
     logger.info(
         f"Qdrant Search selesai. Berhasil mengumpulkan {len(all_results)} dokumen hukum resmi tanpa duplikasi pasal."
