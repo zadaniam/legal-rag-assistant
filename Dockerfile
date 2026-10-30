@@ -45,6 +45,7 @@ FROM base AS frontend
 # agar folder 'src' dapat ditemukan saat dipanggil dari dalam folder 'ui'
 ENV PYTHONPATH="/app"
 
-# Jalankan Chainlit mengikat ke port dinamis Cloud Run.
-# Parameter --headless wajib agar kontainer tidak mencoba membuka browser di dalam server.
-CMD ["sh", "-c", "chainlit run ui/app_chainlit.py --host 0.0.0.0 --port ${PORT:-8080} --headless"]
+ENV CHAINLIT_PORT=$PORT
+
+# Jalankan tanpa argumen port eksplisit
+CMD ["sh", "-c", "chainlit run ui/app_chainlit.py --host 0.0.0.0 --headless"]
