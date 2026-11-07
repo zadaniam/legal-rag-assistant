@@ -1,11 +1,13 @@
 # src/config.py
 import os
+from pathlib import Path
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # 1. Deteksi lingkungan global dari OS (default ke 'development')
 app_env = os.getenv("APP_ENV", "development").lower()
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
@@ -26,8 +28,34 @@ class Settings(BaseSettings):
         env_file=f".env.{app_env}", env_file_encoding="utf-8", extra="ignore"
     )
 
+class PipelineSettings(BaseSettings):
 
-settings = Settings()
+    @computed_field
+    def INPUT_PDF(self) -> Path:
+        return BASE_DIR / "data/raw/uu_nomor_24_tahun_2011_bpjs.pdf"
+    
+    @computed_field
+    def EXTRACTED_DIR(self) -> Path:
+        return BASE_DIR / "data/preprocessed/extracted/uu_bpjs/"
+    
+    @computed_field
+    def CLEANED_FILE(self) -> Path:
+        return BASE_DIR / "data/preprocessed/cleaned/uu_bpjs_cleaned.txt"
+    
+    @computed_field
+    def PARSED_MD(self) -> Path:
+        return BASE_DIR / "data/preprocessed/parsed/uu_bpjs_parsed.md"
+
+    @computed_field
+    def FILES_TO_INGEST(self) -> list[dict[str, str]]:
+        return [
+            {"path": str(BASE_DIR / "data/processed/uu_bpjs_final.md"), 
+            "uu_id": "uu_bpjs_2011"}
+        ]
+    
+    model_config = SettingsConfigDict(
+        env_file=f".env.{app_env}", env_file_encoding="utf-8", extra="ignore"
+    )
 
 
 def setup_telemetry_environment():
@@ -35,3 +63,6 @@ def setup_telemetry_environment():
     os.environ["LANGSMITH_TRACING"] = settings.LANGSMITH_TRACING
     os.environ["LANGSMITH_API_KEY"] = settings.LANGSMITH_API_KEY.get_secret_value()
     os.environ["LANGSMITH_PROJECT"] = settings.LANGSMITH_PROJECT
+
+settings = Settings()
+pipeline_settings = PipelineSettings()

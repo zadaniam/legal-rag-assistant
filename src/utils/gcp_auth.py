@@ -1,6 +1,7 @@
 # src/utils/gcp_auth.py
 
 import os
+
 import httpx
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:7000")
@@ -52,7 +53,5 @@ class GoogleCloudRunAuth(httpx.Auth):
 def create_backend_client() -> httpx.AsyncClient:
     return httpx.AsyncClient(
         timeout=60.0,
-        auth=GoogleCloudRunAuth(
-            FASTAPI_CHAT_URL
-        ), 
+        auth=GoogleCloudRunAuth(FASTAPI_CHAT_URL),
     )

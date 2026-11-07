@@ -1,7 +1,7 @@
 # src/agent/graph.py
 
 from langgraph.checkpoint.postgres.aio import (
-    AsyncPostgresSaver,  # Impor aio secara presisi
+    AsyncPostgresSaver,
 )
 from langgraph.graph import END, START, StateGraph
 
