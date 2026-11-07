@@ -49,6 +49,9 @@ lint: ## Lint and auto-fix with Ruff
 format: ## Format code with Ruff
 	$(UV) run ruff format .
 
+types: ## Format code with Ruff
+	$(UV) run ruff mypy .
+
 pre-commit: ## Run all pre-commit hooks
 	$(UV) run pre-commit run --all-files
 
