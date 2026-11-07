@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from qdrant_client.models import PointStruct
 
-from ingestion.qdrant_service import prepare_and_upload_to_qdrant
+from src.data_pipeline.ingestion.qdrant_service import prepare_and_upload_to_qdrant
 
 
 @pytest.mark.asyncio
@@ -45,11 +45,11 @@ async def test_prepare_and_upload_to_qdrant_success(mocker):
     mock_ai_client.aio.models.embed_content = mock_embed_content
 
     # 3. Lakukan patch langsung ke target objek ai_client di modul qdrant_service
-    mocker.patch("ingestion.qdrant_service.ai_client", mock_ai_client)
+    mocker.patch("src.data_pipeline.ingestion.qdrant_service.ai_client", mock_ai_client)
 
     # --- MOCKING ASYNC QDRANT CLIENT ---
     mock_upsert = AsyncMock()
-    mocker.patch("ingestion.qdrant_service.async_qdrant_client.upsert", mock_upsert)
+    mocker.patch("src.data_pipeline.ingestion.qdrant_service.async_qdrant_client.upsert", mock_upsert)
 
     # =====================================================================
     # 2. ACTION: Jalankan fungsi qdrant service yang diuji

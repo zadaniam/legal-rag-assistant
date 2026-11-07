@@ -1,5 +1,5 @@
 # tests/unit/test_splitter.py
-from ingestion.splitter import split_laws_into_hierarchical_points
+from src.data_pipeline.ingestion.splitter import split_laws_into_hierarchical_points
 
 
 def test_split_laws_into_hierarchical_points_clean_hierarchy():
