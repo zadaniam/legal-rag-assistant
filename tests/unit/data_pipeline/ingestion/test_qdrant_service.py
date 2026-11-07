@@ -49,7 +49,10 @@ async def test_prepare_and_upload_to_qdrant_success(mocker):
 
     # --- MOCKING ASYNC QDRANT CLIENT ---
     mock_upsert = AsyncMock()
-    mocker.patch("src.data_pipeline.ingestion.qdrant_service.async_qdrant_client.upsert", mock_upsert)
+    mocker.patch(
+        "src.data_pipeline.ingestion.qdrant_service.async_qdrant_client.upsert",
+        mock_upsert,
+    )
 
     # =====================================================================
     # 2. ACTION: Jalankan fungsi qdrant service yang diuji

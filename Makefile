@@ -52,17 +52,19 @@ format: ## Format code with Ruff
 pre-commit: ## Run all pre-commit hooks
 	$(UV) run pre-commit run --all-files
 
-test: ## Run the full test suite (requires the Docker databases)
-	$(UV) run pytest
+test: test-unit test-integration ## Run the full unit & integration test suite
 
 test-unit: ## Run unit tests only
 	$(UV) run pytest tests/unit
 
-test-unit-nodes: ## Run nodes unit tests only
+test-nodes: ## Run nodes unit tests only
 	$(UV) run pytest tests/unit/nodes
 
-test-integration: ## Run integration tests only
+test-integration: ## Run integration tests only (requires the Docker databases)
 	$(UV) run pytest tests/integration
+
+test-e2e: ## Run e2e tests (Live Chat with LLM Calling)
+	$(UV) run pytest tests/e2e
 
 # ==============================================================================
 # Local infrastructure

@@ -1,11 +1,13 @@
 import pytest
 import pytest_asyncio
+
 from src.database.connection import (
-    init_database_connections,
-    close_database_connections,
     async_postgres_pool,
-    async_qdrant_client
+    async_qdrant_client,
+    close_database_connections,
+    init_database_connections,
 )
+
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def db_lifespan():
@@ -14,6 +16,7 @@ async def db_lifespan():
     yield
     await close_database_connections()
 
+
 @pytest_asyncio.fixture(scope="function")
 async def pg_conn(db_lifespan):
     """Fixture untuk mendapatkan koneksi Postgres yang terisolasi per fungsi tes."""
@@ -21,6 +24,7 @@ async def pg_conn(db_lifespan):
         yield conn
         # agar data sampah dari tes tidak mengotori DB tes untuk tes berikutnya.
         await conn.rollback()
+
 
 @pytest.fixture(scope="function")
 def qdrant_cli(db_lifespan):
