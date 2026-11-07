@@ -1,7 +1,7 @@
 # tests/unit/test_parser.py
 import pytest
 
-from ingestion.parser_rag import parse_markdown_to_object
+from src.ingestion.parser_rag import parse_markdown_to_object
 
 
 @pytest.fixture
