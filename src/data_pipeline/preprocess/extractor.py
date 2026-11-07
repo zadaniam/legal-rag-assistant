@@ -34,12 +34,3 @@ def run_extractor(pdf_path, output_dir):
                 f.write(text)
 
     print(f"Selesai! Periksa teks mentah per halaman di folder: {output_dir}")
-
-
-if __name__ == "__main__":
-    # Tentukan jalur file input dan output di sini
-    INPUT_PDF = "data/raw/uu_nomor_24_tahun_2011_bpjs.pdf"
-    OUTPUT_FOLDER = "data/preprocessed/loaded/uu_bpjs/"
-
-    # Jalankan proses ekstraksi
-    run_extractor(INPUT_PDF, OUTPUT_FOLDER)

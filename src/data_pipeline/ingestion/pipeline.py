@@ -2,11 +2,11 @@
 import asyncio
 import os
 
-from ingestion.parser_rag import parse_markdown_to_object
-from ingestion.qdrant_service import prepare_and_upload_to_qdrant
-from ingestion.splitter import split_laws_into_hierarchical_points
+from src.data_pipeline.ingestion.parser_rag import parse_markdown_to_object
+from src.data_pipeline.ingestion.qdrant_service import prepare_and_upload_to_qdrant
+from src.data_pipeline.ingestion.splitter import split_laws_into_hierarchical_points
 
-from src.config import settings
+from src.config import pipeline_settings, settings
 from src.database.connection import async_qdrant_client
 
 
@@ -14,17 +14,11 @@ async def run_ingest():
     print(f"[START] Pipeline Ingestion aktif pada mode: {settings.ENVIRONMENT.upper()}")
 
     # KUNCI PERBAIKAN: Buat daftar berkas dokumen yang ingin dimasukkan ke database RAG
-    FILES_TO_INGEST = [
-        {"path": "data/processed/uu_bpjs_rag.md", "uu_id": "uu_bpjs_2011"},
-        {
-            "path": "data/processed/uu_ketenagakerjaan_rag.md",
-            "uu_id": "uu_ketenagakerjaan_2003",
-        },
-    ]
+    files_to_ingest = pipeline_settings.FILES_TO_INGEST
 
     try:
         # Lakukan looping untuk mengeksekusi setiap dokumen satu per satu
-        for doc in FILES_TO_INGEST:
+        for doc in files_to_ingest:
             target_file = doc["path"]
             target_id = doc["uu_id"]
 

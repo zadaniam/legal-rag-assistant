@@ -51,10 +51,3 @@ def run_cleaner(input_dir, output_file_path):
         f.write(full_text)
 
     print(f"Selesai! File teks bersih gabungan berhasil dibuat di: {output_file_path}")
-
-
-if __name__ == "__main__":
-    INPUT_FOLDER = "data/preprocessed/loaded/uu_bpjs/"
-    OUTPUT_FILE = "data/preprocessed/cleaned/uu_bpjs_clean.txt"
-
-    run_cleaner(INPUT_FOLDER, OUTPUT_FILE)
