@@ -30,3 +30,9 @@ htmlcov/
 .coverage
 .coverage.*
 coverage*
+
+# data files
+data/preprocessed/**/*
+data/processed/**/*
+!**/data/preprocessed/**/.gitkeep
+!**/data/processed/**/.gitkeep

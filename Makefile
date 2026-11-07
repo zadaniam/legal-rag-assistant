@@ -66,7 +66,7 @@ test-nodes: ## Run nodes unit tests only
 test-integration: ## Run integration tests only (requires the Docker databases)
 	$(UV) run pytest tests/integration
 
-test-e2e: ## Run e2e tests (Live Chat with LLM Calling)
+test-e2e: ## Run e2e tests (requires LLM API configuration)
 	$(UV) run pytest tests/e2e
 
 # ==============================================================================
@@ -82,7 +82,7 @@ logs: ## Tail logs from the local services
 	$(COMPOSE) -f $(COMPOSE_FILE) logs -f
 
 # ==============================================================================
-# Database initialisation & ingestion   (APP_ENV=$(APP_ENV))
+# Database initialisation & ingestion pipeline   (APP_ENV=$(APP_ENV))
 # ==============================================================================
 init-qdrant: ## Create the Qdrant collection
 	APP_ENV=$(APP_ENV) $(PYTHON) -m src.database.init_qdrant
@@ -90,8 +90,11 @@ init-qdrant: ## Create the Qdrant collection
 init-postgres: ## Create PostgreSQL tables
 	APP_ENV=$(APP_ENV) $(PYTHON) -m src.database.init_postgres
 
-ingest: ## Ingest mock legal data into Qdrant
-	APP_ENV=$(APP_ENV) $(PYTHON) -m ingestion.run_ingest
+data-preprocess : ## Preprocess raw legal documents into a format suitable for ingestion
+	APP_ENV=$(APP_ENV) $(PYTHON) -m src.data_pipeline.preprocess.pipeline
+
+data-ingest: ## Ingest preprocessed legal documents into Qdrant
+	APP_ENV=$(APP_ENV) $(PYTHON) -m src.data_pipeline.ingestion.pipeline
 
 # ==============================================================================
 # Run the application
@@ -103,13 +106,13 @@ run-ui: ## Run the Chainlit UI (http://localhost:8000)
 	APP_ENV=$(APP_ENV) CHAINLIT_APP_ROOT=ui $(UV) run python -m chainlit run ui/app_chainlit.py --port $(UI_PORT)
 
 # ==============================================================================
-# Production shortcuts
+# Production shortcuts (Configure the URLs in `.env.production` before running these)
 # ==============================================================================
 init-qdrant-prod: ## Shortcut: run `init-qdrant` with APP_ENV=production
 	@$(MAKE) -f $(firstword $(MAKEFILE_LIST)) init-qdrant APP_ENV=production
 
-ingest-qdrant-prod: ## Shortcut: run `ingest` with APP_ENV=production
-	@$(MAKE) -f $(firstword $(MAKEFILE_LIST)) ingest APP_ENV=production
+data-ingest-prod: ## Shortcut: run `data-ingest` with APP_ENV=production
+	@$(MAKE) -f $(firstword $(MAKEFILE_LIST)) data-ingest APP_ENV=production
 
 # ==============================================================================
 # Housekeeping
