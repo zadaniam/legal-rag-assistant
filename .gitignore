@@ -29,3 +29,4 @@ files/
 htmlcov/
 .coverage
 .coverage.*
+coverage*
