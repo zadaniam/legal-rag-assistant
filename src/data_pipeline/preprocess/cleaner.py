@@ -16,7 +16,7 @@ def run_cleaner(input_dir, output_file_path):
 
     for file_name in all_files:
         file_path = os.path.join(input_dir, file_name)
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             page_text = f.read()
             combined_text_list.append(page_text)
 

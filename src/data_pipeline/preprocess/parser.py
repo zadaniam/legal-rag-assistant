@@ -9,7 +9,7 @@ def run_parser(input_file_path, output_file_path):
         print(f"Error: File input tidak ditemukan di {input_file_path}")
         return
 
-    with open(input_file_path, "r", encoding="utf-8") as f:
+    with open(input_file_path, encoding="utf-8") as f:
         text = f.read()
 
     # --- PROSES PARSING HIERARKI HUKUM ---

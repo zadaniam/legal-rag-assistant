@@ -82,9 +82,14 @@ async def test_api_chat_endpoint_success(mock_compile_legal_graph):
     assert "text/event-stream" in response.headers["content-type"]
 
     # 5. Ekstrak data JSON final_result secara instan dengan regex/substring sederhana
-    final_result_line = [
-        line for line in response.text.splitlines() if 'event": "final_result"' in line
-    ][0]
+    final_result_line = next(
+        (
+            line
+            for line in response.text.splitlines()
+            if 'event": "final_result"' in line
+        ),
+        "",
+    )
     json_data = json.loads(final_result_line.replace("data: ", "", 1))
 
     # 6. Validasi Integral

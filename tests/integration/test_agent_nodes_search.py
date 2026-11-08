@@ -9,8 +9,7 @@ pytestmark = pytest.mark.asyncio
 
 @pytest.fixture(autouse=True)
 async def verify_qdrant_alive():
-    """
-    Fixture otomatis untuk memastikan server Qdrant aktif sebelum pengujian berjalan.
+    """Fixture otomatis untuk memastikan server Qdrant aktif sebelum pengujian berjalan.
     Hanya melakukan pengecekan kesehatan (health check) tanpa menutup koneksi client
     secara global agar tidak merusak status pool HTTP pada pengujian berikutnya.
     """
@@ -22,8 +21,7 @@ async def verify_qdrant_alive():
 
 
 async def test_legal_search_node_success():
-    """
-    Integration test untuk memastikan node search sukses melakukan pencarian hybrid
+    """Integration test untuk memastikan node search sukses melakukan pencarian hybrid
     dan mengembalikan dokumen dari mock data yang sudah dimasukkan sebelumnya.
     """
     # 1. Siapkan mock state agen RAG hukum Anda
@@ -70,8 +68,7 @@ async def test_legal_search_node_success():
 
 
 async def test_legal_search_node_empty_payload():
-    """
-    Memastikan node search langsung melewatinya dengan aman jika
+    """Memastikan node search langsung melewatinya dengan aman jika
     state search_payloads dalam kondisi kosong.
     """
     mock_state_empty = {"search_payloads": [], "retrieved_documents": []}

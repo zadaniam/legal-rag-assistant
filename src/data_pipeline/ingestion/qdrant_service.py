@@ -10,19 +10,17 @@ from src.utils.embeddings import ai_client
 
 
 async def prepare_and_upload_to_qdrant(prepared_points: list[dict]):
-    """
-    Modul asinkron menggunakan strategi Streaming Batching.
+    """Modul asinkron menggunakan strategi Streaming Batching.
     Langsung mengirim data per batch ke Qdrant Cloud setelah embedding selesai
     untuk mencegah Idle Connection Timeout.
     """
-
     # 1. Tentukan ukuran batch di bawah limit 100 RPM Free Tier Google
-    BATCH_SIZE = 80
+    batch_size = 80
 
     # Pecah list prepared_points menjadi sub-list kecil berukuran 80 data
     batches = [
-        prepared_points[i : i + BATCH_SIZE]
-        for i in range(0, len(prepared_points), BATCH_SIZE)
+        prepared_points[i : i + batch_size]
+        for i in range(0, len(prepared_points), batch_size)
     ]
 
     logger.info(

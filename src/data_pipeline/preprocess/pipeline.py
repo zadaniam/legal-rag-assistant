@@ -1,19 +1,14 @@
-from pathlib import Path
-
 from src.config import pipeline_settings
-from src.data_pipeline.preprocess import extractor
-from src.data_pipeline.preprocess import cleaner
-from src.data_pipeline.preprocess import parser
+from src.data_pipeline.preprocess import cleaner, extractor, parser
 
 
 def run_preprocessing_pipeline():
     print("STARTING DATA PREPROCESSING PIPELINE")
 
-    input_pdf = pipeline_settings.INPUT_PDF
-    extracted_dir = pipeline_settings.EXTRACTED_DIR
-    cleaned_file = pipeline_settings.CLEANED_FILE
-    parsed_md = pipeline_settings.PARSED_MD
-
+    input_pdf = pipeline_settings.input_pdf
+    extracted_dir = pipeline_settings.extracted_dir
+    cleaned_file = pipeline_settings.cleaned_file
+    parsed_md = pipeline_settings.parsed_md
 
     if not input_pdf.exists():
         print(f"Error: File sumber PDF tidak ditemukan di: {input_pdf}")

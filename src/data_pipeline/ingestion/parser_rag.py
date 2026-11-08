@@ -3,7 +3,7 @@ from langchain_text_splitters import MarkdownHeaderTextSplitter
 
 
 def parse_markdown_to_object(md_file_path: str, uu_id: str) -> list[dict]:
-    with open(md_file_path, "r", encoding="utf-8") as f:
+    with open(md_file_path, encoding="utf-8") as f:
         markdown_text = f.read()
 
     # Murni memetakan 3 tingkatan utama: Judul Utama -> Bab -> Pasal
