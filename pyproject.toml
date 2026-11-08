@@ -59,10 +59,6 @@ skip_covered = true
 line-length = 88
 target-version = "py312"
 extend-exclude = [
-    "src/config.py",
-    "src/logger.py",
-    "src/utils/",
-    "src/utils/**",
     "src/data_pipeline/**",
     "src/database/**",
     "src/agent/**",
@@ -73,25 +69,26 @@ extend-exclude = [
     "tests/integration/**",
     "tests/unit/data_pipeline/**",
     "tests/unit/agent/**",
-    "tests/unit/utils/**",
-    "tests/conftest.py",
     "tests/unit/conftest.py",
     "evaluation/**",
 ]
 
 [tool.ruff.lint]
 select = ["F", "E", "W", "I", "N", "B", "UP", "RUF", "S", "D"]
-ignore = ["D100", "D104"]
+ignore = ["D100", "D102", "D104", "D105", "D107"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101","D101", "D102", "D103"]
+"tests/**/*.py" = ["S101","D"]
 
 [tool.mypy]
 python_version = "3.12"
 mypy_path = "."
+plugins = [
+    "pydantic.mypy"
+]
 
 ignore_missing_imports = true
 explicit_package_bases = true
@@ -104,9 +101,6 @@ warn_return_any = true
 warn_unused_configs = true
 
 exclude = [
-    '^src/config\.py$',
-    '^src/logger\.py$',
-    '^src/utils/',
     '^src/data_pipeline/',
     '^src/database/',
     '^src/agent/',
@@ -117,9 +111,12 @@ exclude = [
     '^tests/integration/',
     '^tests/unit/data_pipeline/',
     '^tests/unit/agent/',
-    '^tests/unit/utils/',
-    '^tests/conftest\.py$',
     '^tests/unit/conftest\.py$',
     '^tests/integration/conftest\.py$',
     '^evaluation/',
 ]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true

@@ -1,14 +1,15 @@
-# tests/conftest.py
+"""Pytest configuration and shared fixtures for the test suite."""
+
 import pytest
 
 
 @pytest.fixture(scope="session")
 def anyio_backend():
-    """Memaksa anyio/fastapi testing menggunakan backend asyncio"""
+    """Force anyio/fastapi testing to use the asyncio backend."""
     return "asyncio"
 
 
 @pytest.fixture(scope="session")
 def asyncio_default_test_loop_scope():
-    """Memastikan scope event loop berjalan pada tingkat session"""
+    """Ensure the event loop scope runs at session level."""
     return "session"
