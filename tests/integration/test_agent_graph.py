@@ -45,7 +45,6 @@ async def mock_output_guard_node(_state: LegalAgentState):
 @patch("src.agent.graph.AsyncPostgresSaver")
 async def test_legal_graph_integration_flow(mock_checkpointer):
     """TEST INTEGRASI: Memastikan struktur 5 Node dan Conditional Edges LangGraph terhubung dengan benar."""
-
     test_memory = InMemorySaver()
 
     # Membajak .runnable.afunc menjaga cangkang spec graf asli agar lolos dari validasi kompilasi.

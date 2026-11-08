@@ -28,31 +28,33 @@ class Settings(BaseSettings):
         env_file=f".env.{app_env}", env_file_encoding="utf-8", extra="ignore"
     )
 
+
 class PipelineSettings(BaseSettings):
+    @computed_field
+    def input_pdf(self) -> Path:
+        return BASE_DIR / "data/raw/uu_nomor_24_tahun_2011_bpjs.pdf"
 
     @computed_field
-    def INPUT_PDF(self) -> Path:
-        return BASE_DIR / "data/raw/uu_nomor_24_tahun_2011_bpjs.pdf"
-    
-    @computed_field
-    def EXTRACTED_DIR(self) -> Path:
+    def extracted_dir(self) -> Path:
         return BASE_DIR / "data/preprocessed/extracted/uu_bpjs/"
-    
+
     @computed_field
-    def CLEANED_FILE(self) -> Path:
+    def cleaned_file(self) -> Path:
         return BASE_DIR / "data/preprocessed/cleaned/uu_bpjs_cleaned.txt"
-    
+
     @computed_field
-    def PARSED_MD(self) -> Path:
+    def parsed_md(self) -> Path:
         return BASE_DIR / "data/preprocessed/parsed/uu_bpjs_parsed.md"
 
     @computed_field
-    def FILES_TO_INGEST(self) -> list[dict[str, str]]:
+    def files_to_ingest(self) -> list[dict[str, str]]:
         return [
-            {"path": str(BASE_DIR / "data/processed/uu_bpjs_final.md"), 
-            "uu_id": "uu_bpjs_2011"}
+            {
+                "path": str(BASE_DIR / "data/processed/uu_bpjs_final.md"),
+                "uu_id": "uu_bpjs_2011",
+            }
         ]
-    
+
     model_config = SettingsConfigDict(
         env_file=f".env.{app_env}", env_file_encoding="utf-8", extra="ignore"
     )
@@ -63,6 +65,7 @@ def setup_telemetry_environment():
     os.environ["LANGSMITH_TRACING"] = settings.LANGSMITH_TRACING
     os.environ["LANGSMITH_API_KEY"] = settings.LANGSMITH_API_KEY.get_secret_value()
     os.environ["LANGSMITH_PROJECT"] = settings.LANGSMITH_PROJECT
+
 
 settings = Settings()
 pipeline_settings = PipelineSettings()

@@ -6,8 +6,7 @@ import pytest
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_infrastructure_lifecycle(session_mocker):
-    """
-    Otomatis memotong dan memalsukan seluruh koneksi fisik ke PostgreSQL.
+    """Otomatis memotong dan memalsukan seluruh koneksi fisik ke PostgreSQL.
     Mencegah error PoolTimeout selama unit testing.
     """
     mock_pool = MagicMock()

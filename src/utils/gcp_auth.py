@@ -10,8 +10,7 @@ FASTAPI_CHAT_URL = f"{BACKEND_URL}/api/v1/chat"
 
 
 class GoogleCloudRunAuth(httpx.Auth):
-    """
-    Custom Auth Flow untuk menyuntikkan Identity Token Google Cloud secara otomatis
+    """Custom Auth Flow untuk menyuntikkan Identity Token Google Cloud secara otomatis
     hanya jika berjalan di lingkungan produksi (Cloud Run).
     """
 

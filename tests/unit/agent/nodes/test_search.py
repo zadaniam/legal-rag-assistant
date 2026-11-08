@@ -10,8 +10,7 @@ from src.agent.state import LegalAgentState
 @pytest.mark.anyio
 @patch("src.agent.nodes.search.embed_text", new_callable=AsyncMock)
 async def test_legal_search_node_multi_query_parallel_success(mock_embed_text, mocker):
-    """
-    TEST 1: Memastikan Node Search mampu memproses multi-query secara paralel
+    """TEST 1: Memastikan Node Search mampu memproses multi-query secara paralel
     dan menggabungkan hasilnya dengan tepat dari beberapa UU berbeda.
     """
     # 1. Respon untuk Kueri 1 (Pesangon)
@@ -79,8 +78,7 @@ async def test_legal_search_node_multi_query_parallel_success(mock_embed_text, m
 @pytest.mark.anyio
 @patch("src.agent.nodes.search.embed_text", new_callable=AsyncMock)
 async def test_legal_search_node_deduplication_handling(mock_embed_text, mocker):
-    """
-    TEST 2: Memastikan logika penapisan (deduplication) bekerja membuang dokumen
+    """TEST 2: Memastikan logika penapisan (deduplication) bekerja membuang dokumen
     jika mendeteksi parent_id yang sama dari dua kueri berbeda.
     """
     mock_point_1 = MagicMock()

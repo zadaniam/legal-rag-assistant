@@ -20,7 +20,6 @@ async def embed_single_text(text: str) -> list[float]:
 
 async def embed_text(texts: list[str]) -> list[list[float]]:
     """Mengeksekusi pembuatan vektor secara paralel murni menggunakan asyncio.gather"""
-
     # PERBAIKAN FORENSIK: Proteksi jika data yang dikirim berupa string tunggal (bukan list)
     if isinstance(texts, str):
         texts = [texts]
