@@ -49,8 +49,8 @@ lint: ## Lint and auto-fix with Ruff
 format: ## Format code with Ruff
 	$(UV) run ruff format .
 
-types: ## Format code with Ruff
-	$(UV) run ruff mypy .
+types: ## Run static type checking with Mypy
+	$(UV) run mypy .
 
 pre-commit: ## Run all pre-commit hooks
 	$(UV) run pre-commit run --all-files
@@ -66,8 +66,8 @@ test-nodes: ## Run nodes unit tests only
 test-integration: ## Run integration tests only (requires the Docker databases)
 	$(UV) run pytest tests/integration
 
-test-e2e: ## Run e2e tests (requires LLM API configuration)
-	$(UV) run pytest tests/e2e
+test-e2e-api: ## Run e2e tests (requires running FastAPI and LLM API configuration)
+	$(UV) run pytest tests/e2e/api
 
 # ==============================================================================
 # Local infrastructure
