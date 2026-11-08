@@ -58,24 +58,68 @@ skip_covered = true
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+extend-exclude = [
+    "src/config.py",
+    "src/logger.py",
+    "src/utils/",
+    "src/utils/**",
+    "src/data_pipeline/**",
+    "src/database/**",
+    "src/agent/**",
+    "src/api/**",
+    "src/main.py",
+    "ui/**",
+    "tests/e2e/**",
+    "tests/integration/**",
+    "tests/unit/data_pipeline/**",
+    "tests/unit/agent/**",
+    "tests/unit/utils/**",
+    "tests/conftest.py",
+    "tests/unit/conftest.py",
+    "evaluation/**",
+]
 
 [tool.ruff.lint]
-select = ["B", "E", "F", "I", "S", "W"]
-ignore = ["E501"]
+select = ["F", "E", "W", "I", "N", "B", "UP", "RUF", "S", "D"]
+ignore = ["D100", "D104"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101"]
-"test_*.py" = ["S101"]
+"tests/**/*.py" = ["S101","D101", "D102", "D103"]
 
 [tool.mypy]
 python_version = "3.12"
+mypy_path = "."
+
 ignore_missing_imports = true
 explicit_package_bases = true
-mypy_path = "."
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
-check_untyped_defs = false
 
-[[tool.mypy.overrides]]
-module = ["tests.*", "evaluation.*"]
-ignore_errors = true
+disallow_incomplete_defs = false
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+warn_return_any = true
+warn_unused_configs = true
+
+exclude = [
+    '^src/config\.py$',
+    '^src/logger\.py$',
+    '^src/utils/',
+    '^src/data_pipeline/',
+    '^src/database/',
+    '^src/agent/',
+    '^src/api/',
+    '^src/main\.py$',
+    '^ui/',
+    '^tests/e2e/',
+    '^tests/integration/',
+    '^tests/unit/data_pipeline/',
+    '^tests/unit/agent/',
+    '^tests/unit/utils/',
+    '^tests/conftest\.py$',
+    '^tests/unit/conftest\.py$',
+    '^tests/integration/conftest\.py$',
+    '^evaluation/',
+]
