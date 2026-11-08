@@ -1,21 +1,25 @@
-# src/utils/gcp_auth.py
+"""Google Cloud Run authentication utilities for backend API requests."""
 
 import os
 
 import httpx
 
-BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:7000")
-APP_ENV = os.getenv("APP_ENV", "development").lower()
-FASTAPI_CHAT_URL = f"{BACKEND_URL}/api/v1/chat"
+from src.logger import logger
+
+BACKEND_URL: str = os.getenv("BACKEND_URL", "http://127.0.0.1:7000")
+APP_ENV: str = os.getenv("APP_ENV", "development").lower()
+FASTAPI_CHAT_URL: str = f"{BACKEND_URL}/api/v1/chat"
 
 
 class GoogleCloudRunAuth(httpx.Auth):
-    """Custom Auth Flow untuk menyuntikkan Identity Token Google Cloud secara otomatis
-    hanya jika berjalan di lingkungan produksi (Cloud Run).
+    """Custom auth flow that injects Google Cloud Identity Tokens.
+
+    The token is only attached when running in production on Cloud Run. In
+    other environments the request proceeds without authentication headers
+    to avoid unnecessary metadata server calls during local development.
     """
 
-    def __init__(self, target_url: str):
-        # Ambil base URL (target audience) tanpa path API
+    def __init__(self, target_url: str) -> None:
         self.target_audience = target_url.replace("/api/v1/chat", "")
         self.metadata_endpoint = (
             "http://metadata.google.internal/computeMetadata/v1"
@@ -26,13 +30,18 @@ class GoogleCloudRunAuth(httpx.Auth):
         return False
 
     def auth_flow(self, request: httpx.Request):
-        # Hanya jalankan jika di production lingkungan Cloud Run
+        """Yield the request after optionally attaching a Google Identity Token.
+
+        The token is fetched from the Cloud Run metadata server only when
+        APP_ENV is production. If the metadata server is unreachable, the
+        request continues without a token to avoid blocking non-production
+        environments.
+        """
         if APP_ENV == "production":
             headers = {"Metadata-Flavor": "Google"}
             params = {"audience": self.target_audience}
 
             try:
-                # Menggunakan client sinkron internal khusus untuk mengambil token metadata
                 with httpx.Client(timeout=2.0) as client:
                     response = client.get(
                         self.metadata_endpoint, headers=headers, params=params
@@ -41,15 +50,20 @@ class GoogleCloudRunAuth(httpx.Auth):
                         token = response.text
                         request.headers["Authorization"] = f"Bearer {token}"
             except Exception as e:
-                print(
-                    f"WARNING: Metadata server Google tidak dijangkau, melanjutkan request tanpa token: {e}"
+                logger.warning(
+                    "Google metadata server unreachable, proceeding without "
+                    f"token: {e}"
                 )
 
         yield request
 
 
-# Factory function untuk menghasilkan HTTP Client yang sudah siap pakai
 def create_backend_client() -> httpx.AsyncClient:
+    """Create an HTTP client configured with Google Cloud Run authentication.
+
+    The client automatically attaches an Identity Token when running in
+    production, and connects to the FastAPI chat endpoint.
+    """
     return httpx.AsyncClient(
         timeout=60.0,
         auth=GoogleCloudRunAuth(FASTAPI_CHAT_URL),
