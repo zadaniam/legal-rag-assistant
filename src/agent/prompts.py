@@ -1,4 +1,4 @@
-# src/agent/prompts.py
+"""System prompts for the legal RAG agent nodes."""
 
 CONTEXT_MANAGER_SYSTEM_PROMPT = """
 Anda adalah Manajer Konteks dan Pengarah Rute (Router) cerdas untuk Asisten Hukum Ketenagakerjaan & Jaminan Sosial Indonesia.
