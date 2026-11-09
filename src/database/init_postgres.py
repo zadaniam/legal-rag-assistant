@@ -1,6 +1,10 @@
+"""PostgreSQL database schema initialization."""
+
 import asyncio
+from typing import Any, cast
 
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from psycopg_pool import AsyncConnectionPool
 
 from src.database.connection import (
     async_postgres_pool,
@@ -10,28 +14,34 @@ from src.database.connection import (
 from src.logger import logger
 
 
-async def init_langgraph_tables():
-    """Membuat skema tabel internal LangGraph Checkpointer secara Async"""
-    logger.info("Memeriksa tabel internal Async LangGraph Checkpointer...")
+async def init_langgraph_tables() -> None:
+    """Create LangGraph Checkpointer internal tables asynchronously."""
+    logger.info("Checking async LangGraph Checkpointer internal tables...")
     try:
-        async with async_postgres_pool.connection() as conn:
-            checkpointer = AsyncPostgresSaver(conn)
-            await checkpointer.setup()
-        logger.info("Tabel LangGraph Checkpointer berhasil diverifikasi (Async).")
+        if async_postgres_pool is None:
+            msg = "PostgreSQL pool is not configured"
+            raise RuntimeError(msg)
+        typed_pool = cast(
+            AsyncConnectionPool[Any],
+            async_postgres_pool,
+        )
+        checkpointer = AsyncPostgresSaver(typed_pool)
+        await checkpointer.setup()
+        logger.info("LangGraph Checkpointer tables verified (async).")
     except Exception as e:
-        logger.error(f"Gagal menginisialisasi tabel LangGraph: {e}")
-        raise e
+        logger.error(f"Failed to initialize LangGraph tables: {e}")
+        raise
 
 
-async def init_postgresql_tables():
-    """Membuat tabel bisnis aplikasi di PostgreSQL"""
-    logger.info("Memeriksa skema tabel aplikasi di PostgreSQL...")
+async def init_postgresql_tables() -> None:
+    """Create application business tables in PostgreSQL."""
+    logger.info("Checking application table schema in PostgreSQL...")
 
     create_sessions_table = """
     CREATE TABLE IF NOT EXISTS chat_sessions (
         session_id VARCHAR(255) PRIMARY KEY,
         user_id VARCHAR(255) NOT NULL,
-        title VARCHAR(255) DEFAULT 'Diskusi Hukum Ketenagakerjaan',
+        title VARCHAR(255) DEFAULT 'Legal Employment Discussion',
         summary_memory TEXT DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -53,24 +63,28 @@ async def init_postgresql_tables():
     );
     """
 
+    if async_postgres_pool is None:
+        msg = "PostgreSQL pool is not configured"
+        raise RuntimeError(msg)
     async with async_postgres_pool.connection() as conn, conn.cursor() as cur:
         await cur.execute(create_sessions_table)
         await cur.execute(create_logs_table)
-        logger.info("Tabel 'chat_sessions' dan 'legal_audit_logs' aman diverifikasi.")
+        logger.info("Tables 'chat_sessions' and 'legal_audit_logs' verified.")
 
 
-async def run_postgres_initialization():
+async def run_postgres_initialization() -> None:
+    """Run full PostgreSQL initialization sequence."""
     try:
-        logger.info("=== MEMULAI INISIALISASI POSTGRESQL ===")
+        logger.info("Starting PostgreSQL initialization...")
         await init_database_connections()
 
         await init_postgresql_tables()
         await init_langgraph_tables()
 
-        logger.info("=== POSTGRESQL BERHASIL DIKONFIGURASI ===")
+        logger.info("PostgreSQL configured successfully.")
     except Exception as e:
-        logger.error(f"Inisialisasi PostgreSQL gagal: {e}")
-        raise e
+        logger.error(f"PostgreSQL initialization failed: {e}")
+        raise
     finally:
         await close_database_connections()
 
