@@ -1,4 +1,9 @@
-# src/agent/nodes/output_guard.py
+"""Output guard node for the legal RAG agent.
+
+Validates AI-generated legal answers for hallucination using a hybrid
+approach: deterministic regex pasal citation check followed by semantic
+evaluation with Gemini.
+"""
 
 import json
 import re
@@ -15,22 +20,21 @@ from src.logger import logger
 
 
 class OutputAuditorSchema(BaseModel):
+    """Schema for Gemini output auditor evaluation result."""
+
     analisis_perbandingan: str = Field(
-        description="Analisis evaluasi klaim demi klaim secara objektif."
+        description="Objective claim-by-claim evaluation analysis."
     )
-    kesimpulan: str = Field(description="Hanya berisi string 'AMAN' atau 'HALUSINASI'")
+    kesimpulan: str = Field(description="Only contains string 'AMAN' or 'HALUSINASI'")
 
 
-# Inisialisasi Google Gen AI Client
 ai_client = wrap_gemini(
     genai.Client(api_key=settings.GEMINI_API_KEY.get_secret_value())
 )
 
 
 async def output_guard_node(state: LegalAgentState) -> dict:
-    logger.info("=== Node 5: Mengeksekusi Output Guard (Hibrida) ===")
-
-    # Rute Khusus: Lewati pengecekan jika ini adalah Chit-Chat
+    """Validate AI answer for hallucination using regex and Gemini."""
     filters = state.get("search_filters", {})
     if filters.get("is_chitchat"):
         return {"system_status": "clear"}
@@ -38,13 +42,10 @@ async def output_guard_node(state: LegalAgentState) -> dict:
     final_answer = state.get("final_answer", "")
     retrieved_docs = state.get("retrieved_documents", []) or []
 
-    # ---------------------------------------------------------
-    # TAHAP 1: VALIDASI PYTHON REGEX (DETERMINISTIK)
-    # ---------------------------------------------------------
-    # Ekstrak semua pola angka pasal dari jawaban AI menggunakan regex
+    # Extract all pasal number patterns from the AI answer using regex
     cited_pasals = re.findall(r"Pasal\s+(\d+)", final_answer)
 
-    # Ambil daftar nomor pasal resmi yang terambil dari database Qdrant (ekstrak hanya angkanya saja)
+    # Collect official pasal numbers retrieved from Qdrant (extract digits only)
     allowed_pasals = []
     for doc in retrieved_docs:
         pasal_text = str(doc.get("pasal", ""))
@@ -53,26 +54,29 @@ async def output_guard_node(state: LegalAgentState) -> dict:
             allowed_pasals.append(match.group())
 
     logger.info(
-        f"Pasal disitasi AI: {cited_pasals} | Pasal diizinkan Qdrant: {allowed_pasals}"
+        "Pasal cited by AI: "
+        f"{cited_pasals} | Pasal allowed from Qdrant: {allowed_pasals}"
     )
 
-    # Validasi instan: Jika AI menyebut nomor pasal siluman yang tidak ada di dokumen retrieval, blokir langsung!
+    # Block immediately if AI cites a phantom pasal not present in retrieved documents.
     for pasal in cited_pasals:
         if pasal not in allowed_pasals:
             logger.warning(
-                f"Output Guard memblokir respons! AI menyitasi pasal fiktif/luar: Pasal {pasal}"
+                "Output Guard blocking response! AI cited "
+                f"fictitious/out-of-scope pasal: Pasal {pasal}"
             )
             return {
                 "system_status": "flagged_output",
-                "final_answer": "Maaf, sistem mendeteksi ketidaksesuaian referensi pasal hukum pada jawaban AI. Respons diblokir demi akurasi.",
+                "final_answer": (
+                    "Maaf, sistem mendeteksi ketidaksesuaian referensi pasal "
+                    "hukum pada jawaban AI. Respons diblokir demi akurasi."
+                ),
             }
 
-    # ---------------------------------------------------------
-    # TAHAP 2: VALIDASI GEMINI (SEMANTIK / EVALUASI MAKNA)
-    # ---------------------------------------------------------
     formatted_docs = "\n".join(
         [
-            f"{d.get('pasal', 'Pasal N/A')}: {d.get('text_parent', d.get('text_child', ''))}"
+            f"{d.get('pasal', 'Pasal N/A')}: "
+            f"{d.get('text_parent', d.get('text_child', ''))}"
             for d in retrieved_docs
         ]
     )
@@ -92,28 +96,28 @@ async def output_guard_node(state: LegalAgentState) -> dict:
             ),
         )
 
-        # 1. Parsing teks JSON dari Gemini menjadi dictionary Python
         result_json = json.loads(response.text)
         evaluation_result = result_json.get("kesimpulan", "AMAN").strip().upper()
 
-        # Log analisis internal biar bisa dipantau juga via terminal selain LangSmith
-        logger.info(f"Analisis Auditor: {result_json.get('analisis_perbandingan')}")
-        logger.info(f"Hasil Evaluasi Semantik Output Guard: {evaluation_result}")
+        logger.info(f"Auditor analysis: {result_json.get('analisis_perbandingan')}")
+        logger.info(f"Output Guard semantic evaluation result: {evaluation_result}")
 
-        # 2. Cek kesimpulan akhir dari hasil evaluasi struktur JSON
         if evaluation_result == "HALUSINASI":
             logger.warning(
-                "Output Guard memblokir respons! Terdeteksi penyimpangan makna hukum."
+                "Output Guard blocking response! Detected deviation in legal substance."
             )
             return {
                 "system_status": "flagged_output",
-                "final_answer": "Maaf, jawaban tidak lolos uji akurasi substansi hukum dari pengawas sistem.",
+                "final_answer": (
+                    "Maaf, jawaban tidak lolos uji akurasi substansi hukum "
+                    "dari pengawas sistem."
+                ),
             }
 
-        logger.info("Jawaban dinyatakan AMAN dan valid oleh Output Guard.")
+        logger.info("Answer declared safe and valid by Output Guard.")
         return {"system_status": "clear"}
 
     except Exception as e:
-        logger.error(f"Gagal mengeksekusi evaluasi semantik di Node 5: {e}")
-        # Cari aman: Jika guardrails eror, loloskan asalkan lolos sensor angka Regex di Tahap 1
+        logger.error(f"Failed to execute semantic evaluation in output guard node: {e}")
+        # Fail safe: allow through if regex pasal check in stage 1 passed.
         return {"system_status": "clear"}
