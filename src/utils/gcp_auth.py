@@ -51,8 +51,7 @@ class GoogleCloudRunAuth(httpx.Auth):
                         request.headers["Authorization"] = f"Bearer {token}"
             except Exception as e:
                 logger.warning(
-                    "Google metadata server unreachable, proceeding without "
-                    f"token: {e}"
+                    f"Google metadata server unreachable, proceeding without token: {e}"
                 )
 
         yield request

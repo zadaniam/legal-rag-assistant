@@ -1,4 +1,4 @@
-# src/main.py
+"""FastAPI application entry point with async lifespan management."""
 
 from contextlib import asynccontextmanager
 
@@ -14,40 +14,36 @@ from src.database.connection import (
 from src.logger import logger
 
 
-# 1. Definisikan Lifespan Manager Aplikasi
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # [STARTUP]: Dieksekusi otomatis SAAT server uvicorn dinyalakan
+    """Application lifespan manager handling startup and shutdown."""
     try:
-        # A. Inisialisasi Environment Telemetri LangSmith (Paling Pertama)
         from src.config import setup_telemetry_environment
 
         setup_telemetry_environment()
-        logger.info("Environment telemetri LangSmith berhasil dikonfigurasi.")
+        logger.info("LangSmith telemetry environment configured successfully.")
 
-        # B. Buka koneksi fisik ke Postgres Pool & Qdrant Async
         await init_database_connections()
 
-        # C. Kompilasi blueprint LangGraph di dalam event loop yang aktif
         from src.agent.graph import compile_legal_graph
 
         compile_legal_graph()
 
-        logger.info("=== BACKEND AGENTIC RAG ASYNC READY TO SERVE ===")
+        logger.info("Backend agentic RAG async ready to serve")
     except Exception as e:
-        logger.error(f"Gagal menjalankan siklus startup aplikasi: {e}")
+        logger.error(f"Failed to run application startup cycle: {e}")
         raise e
 
-    yield  # Aplikasi aktif menerima request HTTP/Stream dari client
+    yield
 
-    # [SHUTDOWN]: Dieksekusi otomatis SAAT server uvicorn dimatikan
     await close_database_connections()
 
 
-# 2. Inisialisasi FastAPI dengan Lifespan
 app = FastAPI(
     title="Asisten Legal RAG API",
-    description="API HTTP Clean Architecture dengan Lifespan Async untuk Agentic RAG Hukum",
+    description=(
+        "API HTTP Clean Architecture dengan Lifespan Async untuk Agentic RAG Hukum"
+    ),
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -65,7 +61,8 @@ app.include_router(chat_v1_router, prefix="/api/v1")
 
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Monitoring"])
 def health_check():
+    """Return application health status and current environment."""
     return {"status": "healthy", "environment": settings.ENVIRONMENT}
 
 
-logger.info("FastAPI Server sukses membaca arsitektur APIRouter modular Lifespan.")
+logger.info("FastAPI server initialized with modular APIRouter Lifespan")
