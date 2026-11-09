@@ -5,10 +5,10 @@ import pytest
 async def test_postgres_connection_query(pg_conn):
     """Memastikan kolam koneksi Postgres terbuka dan bisa mengeksekusi kueri dasar"""
     async with pg_conn.cursor() as cur:
-        await cur.execute("SELECT 1;")
+        await cur.execute("SELECT 1 AS total;")
         result = await cur.fetchone()
 
-    assert result == (1,)
+    assert result == {"total": 1}
 
 
 @pytest.mark.asyncio
