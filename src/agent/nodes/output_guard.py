@@ -42,10 +42,8 @@ async def output_guard_node(state: LegalAgentState) -> dict:
     final_answer = state.get("final_answer", "")
     retrieved_docs = state.get("retrieved_documents", []) or []
 
-    # Extract all pasal number patterns from the AI answer using regex
     cited_pasals = re.findall(r"Pasal\s+(\d+)", final_answer)
 
-    # Collect official pasal numbers retrieved from Qdrant (extract digits only)
     allowed_pasals = []
     for doc in retrieved_docs:
         pasal_text = str(doc.get("pasal", ""))

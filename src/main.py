@@ -40,9 +40,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Asisten Legal RAG API",
+    title="Legal RAG Assistant API",
     description=(
-        "API HTTP Clean Architecture dengan Lifespan Async untuk Agentic RAG Hukum"
+        "HTTP Clean Architecture API with Async Lifespan for Agentic Legal RAG"
     ),
     version="1.0.0",
     lifespan=lifespan,
