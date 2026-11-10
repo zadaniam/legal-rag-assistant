@@ -16,9 +16,7 @@ router = APIRouter(prefix="/chat", tags=["Legal Chat Session"])
 class ChatRequest(BaseModel):
     """Request payload for the legal chat endpoint."""
 
-    message: str = Field(
-        ..., description="Legal question or greeting from the user."
-    )
+    message: str = Field(..., description="Legal question or greeting from the user.")
     session_id: str = Field(
         ...,
         description=(
@@ -55,9 +53,7 @@ async def chat_with_legal_agent(payload: ChatRequest):
                 yield f"data: {json.dumps(payload_node)}\n\n"
 
             graph_state = await legal_rag_graph.aget_state(config)
-            final_state = (
-                graph_state.values
-            )
+            final_state = graph_state.values
 
             filters = final_state.get("search_filters", {}) or {}
             is_chitchat = filters.get("is_chitchat", False)

@@ -20,6 +20,10 @@ async def embed_single_text(text: str) -> list[float]:
     response = await ai_client.aio.models.embed_content(
         model="models/gemini-embedding-2", contents=text
     )
+    
+    if not response.embeddings:
+        raise ValueError("Gemini API returned an empty embedding response.")
+    
     return response.embeddings[0].values
 
 

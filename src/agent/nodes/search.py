@@ -18,6 +18,12 @@ from src.utils.embeddings import embed_text
 
 async def legal_search_node(state: LegalAgentState) -> dict:
     """Execute async Qdrant hybrid search using decomposed queries."""
+    if async_qdrant_client is None:
+        raise RuntimeError(
+            "Database connection error: 'async_qdrant_client' is not initialized. "
+            "Ensure database pool is active before running agent search node."
+        )
+
     search_payloads = state.get("search_payloads", [])
     if not search_payloads:
         logger.info("No search payloads. Skipping Qdrant process.")

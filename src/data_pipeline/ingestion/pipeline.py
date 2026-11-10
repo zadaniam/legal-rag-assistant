@@ -31,7 +31,6 @@ async def run_ingest() -> None:
             )
 
             parsed_laws = parse_markdown_to_object(target_file, uu_id=target_id)
-
             prepared_points = split_laws_into_hierarchical_points(parsed_laws)
 
             print(
@@ -45,10 +44,13 @@ async def run_ingest() -> None:
     except Exception as e:
         print(f"[ERROR] Mass ingestion process failed: {e}")
         raise e
+
     finally:
-        print("\nClosing Async Qdrant Client connection...")
-        await async_qdrant_client.close()
-        print("Async Qdrant Client connection closed cleanly.")
+        if async_qdrant_client is not None:
+            await async_qdrant_client.close()
+            print("Async Qdrant Client connection closed cleanly.")
+        else:
+            print("Async Qdrant client was already uninitialized or None.")
 
 
 if __name__ == "__main__":
