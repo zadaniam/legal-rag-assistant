@@ -41,6 +41,10 @@ async def input_guard_node(state: LegalAgentState) -> dict:
     """Check user input for safety using Gemini classification."""
     user_message = state["messages"][-1].content
 
+    if not isinstance(user_message, str):
+        msg_type = type(user_message).__name__
+        raise TypeError(f"Expected user_message to be str, got {msg_type}")
+
     try:
         response = await ai_client.aio.models.generate_content(
             model="gemini-3.5-flash-lite",
@@ -52,6 +56,9 @@ async def input_guard_node(state: LegalAgentState) -> dict:
                 response_schema=InputGuardOutputSchema,
             ),
         )
+
+        if response.text is None:
+            raise ValueError("Gemini API response text is None.")
 
         result_json = json.loads(response.text)
         is_safe = result_json.get("is_safe", True)
