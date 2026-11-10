@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+from typing import cast
 
 from src.config import pipeline_settings, settings
 from src.data_pipeline.ingestion.parser_rag import parse_markdown_to_object
@@ -14,7 +15,9 @@ async def run_ingest() -> None:
     """Execute the full ingestion pipeline: parse -> split -> embed -> upload."""
     print(f"[START] Ingestion pipeline running in mode: {settings.ENVIRONMENT.upper()}")
 
-    files_to_ingest = pipeline_settings.files_to_ingest
+    files_to_ingest: list[dict[str, str]] = cast(
+        list[dict[str, str]], pipeline_settings.files_to_ingest
+    )
 
     try:
         for doc in files_to_ingest:
