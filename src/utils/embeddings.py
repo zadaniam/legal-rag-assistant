@@ -25,7 +25,9 @@ async def embed_single_text(text: str) -> list[float]:
         raise ValueError("Gemini API returned an empty embedding response.")
 
     values = response.embeddings[0].values
-    assert values is not None
+    if values is None:
+        raise ValueError("Embedding response values are None.")
+
     return values
 
 

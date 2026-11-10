@@ -53,7 +53,9 @@ async def prepare_and_upload_to_qdrant(prepared_points: list[dict]) -> None:
                 )
 
             dense_vector = response.embeddings[0].values
-            assert dense_vector is not None
+
+            if dense_vector is None:
+                raise ValueError("Failed to retrieve: embedding values are None.")
 
             return models.PointStruct(
                 id=data["point_id"],
