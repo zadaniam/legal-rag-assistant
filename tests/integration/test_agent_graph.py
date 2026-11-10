@@ -1,4 +1,5 @@
-# tests/integration/test_agent_graph.py
+"""Integration test for the legal RAG LangGraph workflow."""
+
 from unittest.mock import patch
 
 import pytest
@@ -34,7 +35,10 @@ async def mock_legal_search_node(_state: LegalAgentState):
 
 async def mock_legal_reasoner_node(_state: LegalAgentState):
     return {
-        "final_answer": "Menurut Pasal 156 [UU Ketenagakerjaan], masa kerja kurang dari 1 tahun mendapat 1 bulan upah."
+        "final_answer": (
+            "Menurut Pasal 156 [UU Ketenagakerjaan], masa kerja kurang dari 1 "
+            "tahun mendapat 1 bulan upah."
+        ),
     }
 
 
@@ -44,10 +48,8 @@ async def mock_output_guard_node(_state: LegalAgentState):
 
 @patch("src.agent.graph.AsyncPostgresSaver")
 async def test_legal_graph_integration_flow(mock_checkpointer):
-    """TEST INTEGRASI: Memastikan struktur 5 Node dan Conditional Edges LangGraph terhubung dengan benar."""
     test_memory = InMemorySaver()
 
-    # Membajak .runnable.afunc menjaga cangkang spec graf asli agar lolos dari validasi kompilasi.
     builder.nodes["input_guard"].runnable.afunc = mock_input_guard_node
     builder.nodes["context_manager"].runnable.afunc = mock_context_manager_node
     builder.nodes["legal_search"].runnable.afunc = mock_legal_search_node

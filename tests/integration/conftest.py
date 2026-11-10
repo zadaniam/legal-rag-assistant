@@ -1,3 +1,5 @@
+"""Pytest configuration and shared fixtures for integration tests."""
+
 import pytest
 import pytest_asyncio
 
@@ -11,7 +13,7 @@ from src.database.connection import (
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def db_lifespan():
-    """Mengelola siklus hidup koneksi untuk seluruh sesi pengujian integrasi."""
+    """Manages connection lifecycle for the entire integration test session."""
     await init_database_connections()
     yield
     await close_database_connections()
@@ -19,14 +21,13 @@ async def db_lifespan():
 
 @pytest_asyncio.fixture(scope="function")
 async def pg_conn(db_lifespan):
-    """Fixture untuk mendapatkan koneksi Postgres yang terisolasi per fungsi tes."""
+    """Provides an isolated Postgres connection per test function."""
     async with async_postgres_pool.connection() as conn:
         yield conn
-        # agar data sampah dari tes tidak mengotori DB tes untuk tes berikutnya.
         await conn.rollback()
 
 
 @pytest.fixture(scope="function")
 def qdrant_cli(db_lifespan):
-    """Fixture untuk mendapatkan client Qdrant."""
+    """Provides the Qdrant client."""
     return async_qdrant_client
