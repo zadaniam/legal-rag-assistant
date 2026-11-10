@@ -1,4 +1,3 @@
-# tests/unit/test_context_manager.py
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -8,11 +7,9 @@ from src.agent.nodes.context import context_manager_node
 from src.agent.state import LegalAgentState
 
 
-# TEST 1: Memastikan Kasus Basa-basi (Chit-chat) diarahkan dengan benar
 @pytest.mark.asyncio
 @patch("src.agent.nodes.context.ai_client.aio.models.generate_content")
 async def test_context_manager_chitchat_success(mock_generate_content):
-    # Setup tiruan respon JSON dari Gemini
     mock_response = AsyncMock()
     mock_response.text = (
         '{"is_chitchat": true, '
@@ -38,7 +35,6 @@ async def test_context_manager_chitchat_success(mock_generate_content):
     assert len(node_output["search_payloads"]) == 0
 
 
-# TEST 2: Memastikan Kasus Substansi Hukum (RAG) memecah query secara paralel
 @pytest.mark.asyncio
 @patch("src.agent.nodes.context.ai_client.aio.models.generate_content")
 async def test_context_manager_legal_query_success(mock_generate_content):
@@ -47,7 +43,8 @@ async def test_context_manager_legal_query_success(mock_generate_content):
         '{"is_chitchat": false, '
         '"chitchat_response": "", '
         '"search_payloads": ['
-        '  {"query": "aturan uang pesangon PHK", "target_uu": "uu_ketenagakerjaan_2003"},'
+        '  {"query": "aturan uang pesangon PHK", "target_uu": '
+        '"uu_ketenagakerjaan_2003"},'
         '  {"query": "hak jaminan pensiun BPJS", "target_uu": "Semua"}'
         "]}"
     )
@@ -56,7 +53,9 @@ async def test_context_manager_legal_query_success(mock_generate_content):
     mock_state: LegalAgentState = {
         "messages": [
             HumanMessage(
-                content="Bagaimana perhitungan pesangon dan hak BPJS saya jika kena PHK?"
+                content=(
+                    "Bagaimana perhitungan pesangon dan hak BPJS saya jika kena PHK?"
+                ),
             )
         ],
         "summary_memory": "",
