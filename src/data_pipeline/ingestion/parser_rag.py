@@ -1,12 +1,16 @@
-# ingestion/parser_rag.py
+"""Parse Markdown legal documents into hierarchical objects for ingestion."""
+
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 
 
 def parse_markdown_to_object(md_file_path: str, uu_id: str) -> list[dict]:
+    """Parse a Markdown legal document into a list of law objects.
+
+    Maps three hierarchy levels: document title -> BAB (chapter) -> Pasal (article).
+    """
     with open(md_file_path, encoding="utf-8") as f:
         markdown_text = f.read()
 
-    # Murni memetakan 3 tingkatan utama: Judul Utama -> Bab -> Pasal
     headers_to_split_on = [
         ("#", "judul_uu"),
         ("##", "bab"),
@@ -36,7 +40,7 @@ def parse_markdown_to_object(md_file_path: str, uu_id: str) -> list[dict]:
                 "judul_uu": metadata.get("judul_uu", "Undang-Undang"),
                 "bab": metadata.get("bab", "BAB: Tidak ada"),
                 "pasal": nama_pasal if nama_pasal else "Pasal: Tidak ada",
-                "text_parent": text_parent_clean,  # Bersih dari Judul UU dan Bab ganda!
+                "text_parent": text_parent_clean,
             }
         )
 

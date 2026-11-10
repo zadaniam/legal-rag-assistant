@@ -1,3 +1,9 @@
+"""Asynchronous Qdrant upload module using streaming batch strategy.
+
+Sends data per batch to Qdrant Cloud after embedding completes to prevent
+Idle Connection Timeout.
+"""
+
 import asyncio
 
 from google.genai import types
@@ -9,28 +15,26 @@ from src.logger import logger
 from src.utils.embeddings import ai_client
 
 
-async def prepare_and_upload_to_qdrant(prepared_points: list[dict]):
-    """Modul asinkron menggunakan strategi Streaming Batching.
-    Langsung mengirim data per batch ke Qdrant Cloud setelah embedding selesai
-    untuk mencegah Idle Connection Timeout.
+async def prepare_and_upload_to_qdrant(prepared_points: list[dict]) -> None:
+    """Upload prepared points to Qdrant using streaming batch strategy.
+
+    Embeds and uploads data in batches to avoid Idle Connection Timeout
+    and respect Google Free Tier RPM limits.
     """
-    # 1. Tentukan ukuran batch di bawah limit 100 RPM Free Tier Google
     batch_size = 80
 
-    # Pecah list prepared_points menjadi sub-list kecil berukuran 80 data
     batches = [
         prepared_points[i : i + batch_size]
         for i in range(0, len(prepared_points), batch_size)
     ]
 
     logger.info(
-        f"-> Total data: {len(prepared_points)}. Dibagi menjadi {len(batches)} gelombang batch."
+        f"-> Total data: {len(prepared_points)}. Split into {len(batches)} batch waves."
     )
 
     async def process_single_point(data: dict) -> models.PointStruct:
-        """Memproses satu data point menggunakan metode asinkron (aio) resmi SDK."""
+        """Process a single data point using the official async SDK."""
         try:
-            # Memanggil API secara asinkron menggunakan properti .aio sesuai struktur utils Anda
             response = await ai_client.aio.models.embed_content(
                 model="models/gemini-embedding-2",
                 contents=data["text_to_embed"],
@@ -38,7 +42,6 @@ async def prepare_and_upload_to_qdrant(prepared_points: list[dict]):
             )
             dense_vector = response.embeddings[0].values
 
-            # Kembalikan objek PointStruct yang siap di-upsert
             return models.PointStruct(
                 id=data["point_id"],
                 vector={
@@ -59,37 +62,37 @@ async def prepare_and_upload_to_qdrant(prepared_points: list[dict]):
             )
         except Exception as e:
             logger.error(
-                f"[ERROR] Gagal memproses embedding untuk point {data['point_id']}: {e}"
+                f"[ERROR] Failed to process embedding for point {data['point_id']}: {e}"
             )
             raise e
 
-    # 2. EKSEKUSI BATCH DEMI BATCH DAN LANGSUNG ALIRKAN KE QDRANT
     for index, batch in enumerate(batches):
         logger.info(
-            f"-> Mengeksekusi gelombang batch ke-{index + 1}/{len(batches)} (Berisi {len(batch)} data)..."
+            f"-> Executing batch wave {index + 1}/{len(batches)} "
+            f"({len(batch)} records)..."
         )
 
-        # Jalankan pembentukan embedding secara paralel menggunakan asyncio.gather untuk batch ini
         tasks = [process_single_point(p) for p in batch]
         qdrant_points_batch = await asyncio.gather(*tasks)
 
-        # KUNCI PERBAIKAN TIMEOUT: Langsung kirim batch ini ke Qdrant Cloud
         logger.info(
-            f"   -> Mengunggah {len(qdrant_points_batch)} points dari batch ke-{index + 1} ke Qdrant Cloud..."
+            "   -> Uploading "
+            f"{len(qdrant_points_batch)} points "
+            f"from batch wave {index + 1} to Qdrant Cloud..."
         )
 
         await async_qdrant_client.upsert(
             collection_name=settings.QDRANT_COLLECTION_NAME, points=qdrant_points_batch
         )
-        logger.info(f"   [SUKSES] Data batch ke-{index + 1} aman disimpan di Qdrant.")
+        logger.info(f"   [SUCCESS] Batch wave {index + 1} safely stored in Qdrant.")
 
-        # Jika masih ada batch berikutnya, tidur selama 65 detik untuk mereset kuota RPM Google
         if index < len(batches) - 1:
             logger.info(
-                "-> Jeda 65 detik untuk mereset kuota Free Tier Gemini sebelum batch berikutnya...\n"
+                "-> 65-second pause to reset Google Free Tier Gemini "
+                "RPM quota before next batch...\n"
             )
             await asyncio.sleep(65)
 
     logger.info(
-        f"\n[SELESAI] Seluruh {len(batches)} batch berhasil ditransfer ke Qdrant Cloud!"
+        f"\n[DONE] All {len(batches)} batches successfully transferred to Qdrant Cloud!"
     )
