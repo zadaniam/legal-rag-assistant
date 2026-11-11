@@ -1,5 +1,6 @@
 """FastAPI application entry point with async lifespan management."""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, status
@@ -15,7 +16,7 @@ from src.logger import logger
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager handling startup and shutdown."""
     try:
         from src.config import setup_telemetry_environment
@@ -60,7 +61,7 @@ app.include_router(chat_v1_router, prefix="/api/v1")
 
 
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Monitoring"])
-def health_check():
+def health_check() -> dict[str, str]:
     """Return application health status and current environment."""
     return {"status": "healthy", "environment": settings.ENVIRONMENT}
 

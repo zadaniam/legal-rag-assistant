@@ -1,10 +1,13 @@
 """Chat API endpoint for the legal RAG assistant using Server-Sent Events (SSE)."""
 
 import json
+from collections.abc import AsyncGenerator
+from typing import cast
 
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import StreamingResponse
 from langchain_core.messages import HumanMessage
+from langchain_core.runnables import RunnableConfig
 from pydantic import BaseModel, Field
 
 from src.agent.graph import compile_legal_graph
@@ -26,7 +29,7 @@ class ChatRequest(BaseModel):
 
 
 @router.post("")
-async def chat_with_legal_agent(payload: ChatRequest):
+async def chat_with_legal_agent(payload: ChatRequest) -> StreamingResponse:
     """Handle incoming chat requests and stream the legal agent response via SSE."""
     logger.info(
         "Received HTTP Chat request via APIRouter SSE Stream. "
@@ -34,12 +37,12 @@ async def chat_with_legal_agent(payload: ChatRequest):
     )
 
     input_state = {"messages": [HumanMessage(content=payload.message)]}
-    config = {"configurable": {"thread_id": payload.session_id}}
+    config = cast(RunnableConfig, {"configurable": {"thread_id": payload.session_id}})
 
     try:
         legal_rag_graph = compile_legal_graph()
 
-        async def event_generator():
+        async def event_generator() -> AsyncGenerator[str, None]:
             async for chunk in legal_rag_graph.astream(
                 input_state, config=config, stream_mode="updates"
             ):
