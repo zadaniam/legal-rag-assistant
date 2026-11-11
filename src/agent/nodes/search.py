@@ -8,6 +8,7 @@ import asyncio
 from typing import Any
 
 from qdrant_client import models
+from qdrant_client.models import Condition
 
 from src.agent.state import LegalAgentState
 from src.config import settings
@@ -18,6 +19,12 @@ from src.utils.embeddings import embed_text
 
 async def legal_search_node(state: LegalAgentState) -> dict:
     """Execute async Qdrant hybrid search using decomposed queries."""
+    if async_qdrant_client is None:
+        raise RuntimeError(
+            "Database connection error: 'async_qdrant_client' is not initialized. "
+            "Ensure database pool is active before running agent search node."
+        )
+
     search_payloads = state.get("search_payloads", [])
     if not search_payloads:
         logger.info("No search payloads. Skipping Qdrant process.")
@@ -41,11 +48,12 @@ async def legal_search_node(state: LegalAgentState) -> dict:
 
         query_vector = all_query_vectors[idx]
 
-        must_conditions = [
+        must_conditions: list[Condition] = [
             models.FieldCondition(
                 key="status_keberlakuan", match=models.MatchValue(value="berlaku")
             )
         ]
+
         if target_uu != "Semua":
             must_conditions.append(
                 models.FieldCondition(

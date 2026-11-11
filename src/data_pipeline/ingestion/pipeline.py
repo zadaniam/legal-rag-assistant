@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+from typing import cast
 
 from src.config import pipeline_settings, settings
 from src.data_pipeline.ingestion.parser_rag import parse_markdown_to_object
@@ -14,7 +15,9 @@ async def run_ingest() -> None:
     """Execute the full ingestion pipeline: parse -> split -> embed -> upload."""
     print(f"[START] Ingestion pipeline running in mode: {settings.ENVIRONMENT.upper()}")
 
-    files_to_ingest = pipeline_settings.files_to_ingest
+    files_to_ingest: list[dict[str, str]] = cast(
+        list[dict[str, str]], pipeline_settings.files_to_ingest
+    )
 
     try:
         for doc in files_to_ingest:
@@ -31,7 +34,6 @@ async def run_ingest() -> None:
             )
 
             parsed_laws = parse_markdown_to_object(target_file, uu_id=target_id)
-
             prepared_points = split_laws_into_hierarchical_points(parsed_laws)
 
             print(
@@ -45,10 +47,13 @@ async def run_ingest() -> None:
     except Exception as e:
         print(f"[ERROR] Mass ingestion process failed: {e}")
         raise e
+
     finally:
-        print("\nClosing Async Qdrant Client connection...")
-        await async_qdrant_client.close()
-        print("Async Qdrant Client connection closed cleanly.")
+        if async_qdrant_client is not None:
+            await async_qdrant_client.close()
+            print("Async Qdrant Client connection closed cleanly.")
+        else:
+            print("Async Qdrant client was already uninitialized or None.")
 
 
 if __name__ == "__main__":

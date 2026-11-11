@@ -21,6 +21,12 @@ async def prepare_and_upload_to_qdrant(prepared_points: list[dict]) -> None:
     Embeds and uploads data in batches to avoid Idle Connection Timeout
     and respect Google Free Tier RPM limits.
     """
+    if async_qdrant_client is None:
+        raise RuntimeError(
+            "Database connection error: 'async_qdrant_client' is not initialized. "
+            "Ensure database connection pool is running before ingestion."
+        )
+
     batch_size = 80
 
     batches = [
@@ -40,7 +46,16 @@ async def prepare_and_upload_to_qdrant(prepared_points: list[dict]) -> None:
                 contents=data["text_to_embed"],
                 config=types.EmbedContentConfig(output_dimensionality=3072),
             )
+
+            if not response.embeddings or response.embeddings[0] is None:
+                raise ValueError(
+                    f"Empty embedding response for point {data['point_id']}."
+                )
+
             dense_vector = response.embeddings[0].values
+
+            if dense_vector is None:
+                raise ValueError("Failed to retrieve: embedding values are None.")
 
             return models.PointStruct(
                 id=data["point_id"],
@@ -60,6 +75,7 @@ async def prepare_and_upload_to_qdrant(prepared_points: list[dict]) -> None:
                     "pasal": data["pasal"],
                 },
             )
+
         except Exception as e:
             logger.error(
                 f"[ERROR] Failed to process embedding for point {data['point_id']}: {e}"

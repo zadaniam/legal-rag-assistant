@@ -1,15 +1,15 @@
-# ui/app_chainlit.py
+"""Module for handling the chat UI interface and streaming backend responses."""
 
 import json
 import uuid
+from typing import Any
 
 import chainlit as cl
 import httpx
 
 from src.utils.gcp_auth import FASTAPI_CHAT_URL, create_backend_client
 
-# Mapping nama Node LangGraph ke Bahasa Indonesia agar tampilan UI profesional
-NODE_DISPLAY_MAP = {
+NODE_DISPLAY_MAP: dict[str, str] = {
     "input_guard": "🛡️ Memeriksa Keamanan Input Pengguna",
     "context_manager": "🧠 Menganalisis Konteks & Rute Pertanyaan",
     "legal_search": "🔍 Mencari Referensi Pasal Hukum di Database Qdrant",
@@ -17,64 +17,66 @@ NODE_DISPLAY_MAP = {
     "output_guard": "🔬 Memverifikasi Akurasi dan Validitas Jawaban",
 }
 
-# Mapping nama database UU ke format penulisan resmi Indonesia
-UU_DISPLAY_MAP = {
+UU_DISPLAY_MAP: dict[str, str] = {
     "uu_ketenagakerjaan_2003": "UU No. 13 Tahun 2003 tentang Ketenagakerjaan",
     "uu_bpjs_2011": "UU No. 24 Tahun 2011 tentang BPJS",
 }
 
 
 @cl.on_chat_start
-async def start_chat():
+async def start_chat() -> None:
+    """Initialize the user session and send the initial greeting message."""
     session_id = str(uuid.uuid4())
     cl.user_session.set("session_id", session_id)
 
-    # Menggunakan print standar (otomatis masuk ke Cloud Logging)
-    print(f"INFO: [{session_id}] Sesi chat baru dimulai oleh pengguna.")
+    print(f"INFO: [{session_id}] New chat session started by user.")
 
-    await cl.Message(
-        content="Halo! Saya adalah **Asisten Hukum Ketenagakerjaan Indonesia**. Silakan tanyakan masalah ketenagakerjaan Anda."
-    ).send()
+    greeting = (
+        "Halo! Saya adalah **Asisten Hukum Ketenagakerjaan Indonesia**. "
+        "Silakan tanyakan masalah ketenagakerjaan Anda."
+    )
+    await cl.Message(content=greeting).send()
 
 
 @cl.on_message
-async def handle_message(message: cl.Message):
+async def handle_message(message: cl.Message) -> None:
+    """Handle incoming user messages and stream the response from the backend API."""
     session_id = cl.user_session.get("session_id")
     payload = {"message": message.content, "session_id": session_id}
 
-    # Menggunakan print untuk pelacakan pesan masuk
-    print(f"INFO: [{session_id}] Menerima pesan pengguna: {message.content[:50]}...")
-    print(f"DEBUG: [{session_id}] Payload dikirim ke backend: {json.dumps(payload)}")
+    print(f"INFO: [{session_id}] Received user message: {message.content[:50]}...")
+    print(f"DEBUG: [{session_id}] Sending payload to backend: {json.dumps(payload)}")
 
-    # 1. Wadah kosong jawaban utama
     msg_placeholder = cl.Message(content="")
     await msg_placeholder.send()
 
-    # 2. Indikator proses berpikir tunggal yang aman dari bug avatar
-    thinking_step = cl.Step(name="AnalisisSistem", type="tool")
-    thinking_step.output = "🤖 Asisten Hukum sedang menganalisis regulasi..."
-    await thinking_step.send()
+    thinking_step: cl.Step | None = cl.Step(name="AnalisisSistem", type="tool")
+
+    if thinking_step:
+        thinking_step.output = "🤖 Asisten Hukum sedang menganalisis regulasi..."
+        await thinking_step.send()
 
     final_answer = ""
-    citations = []
+    citations: list[dict[str, Any]] = []
 
     try:
-        # PANGGIL FACTORY: Client otomatis tahu kapan harus pakai token GCP, kapan tidak.
         async with create_backend_client() as http_client:
-            print(
-                f"INFO: [{session_id}] Membuka koneksi stream ke Backend API Utama..."
-            )
+            print(f"INFO: [{session_id}] Opening stream to backend API...")
 
             async with http_client.stream(
                 "POST", FASTAPI_CHAT_URL, json=payload
             ) as response:
                 if response.status_code != 200:
                     print(
-                        f"ERROR: [{session_id}] Backend merespons gagal dengan status: {response.status_code}"
+                        f"ERROR: [{session_id}] Backend failed with status: "
+                        f"{response.status_code}"
                     )
                     if thinking_step:
                         await thinking_step.remove()
-                    msg_placeholder.content = f"❌ Server merespons dengan status eror: {response.status_code}"
+                    msg_placeholder.content = (
+                        f"❌ Server merespons dengan status eror: "
+                        f"{response.status_code}"
+                    )
                     await msg_placeholder.update()
                     return
 
@@ -84,28 +86,40 @@ async def handle_message(message: cl.Message):
                         data = json.loads(json_str)
                         event_type = data.get("event")
 
-                        # A. Update teks status berpikir berdasarkan rute aktual backend
                         if event_type == "node_complete":
                             completed_node = data.get("node")
                             print(
-                                f"INFO: [{session_id}] Node selesai dieksekusi: {completed_node}"
+                                f"INFO: [{session_id}] Node execution completed: "
+                                f"{completed_node}"
                             )
 
                             if thinking_step:
                                 if completed_node == "input_guard":
-                                    thinking_step.output = "🛡️ Keamanan input tervalidasi. Menganalisis konteks hukum..."
+                                    thinking_step.output = (
+                                        "🛡️ Keamanan input tervalidasi. "
+                                        "Menganalisis konteks hukum..."
+                                    )
                                 elif completed_node == "context_manager":
-                                    thinking_step.output = "🧠 Mengekstrak referensi pasal dan memproses database..."
+                                    thinking_step.output = (
+                                        "🧠 Mengekstrak referensi pasal dan "
+                                        "memproses database..."
+                                    )
                                 elif completed_node == "legal_search":
-                                    thinking_step.output = "🔍 Menyusun argumentasi hukum dan pasal ketenagakerjaan..."
+                                    thinking_step.output = (
+                                        "🔍 Menyusun argumentasi hukum dan "
+                                        "pasal ketenagakerjaan..."
+                                    )
                                 elif completed_node == "legal_reasoner":
-                                    thinking_step.output = "⚖️ Memverifikasi validitas akhir dan akurasi jawaban..."
+                                    thinking_step.output = (
+                                        "⚖️ Memverifikasi validitas akhir dan "
+                                        "akurasi jawaban..."
+                                    )
                                 await thinking_step.update()
 
-                        # B. Tangkap hasil akhir utuh yang sudah lolos uji Kelayakan (Output Guard)
                         elif event_type == "final_result":
                             print(
-                                f"INFO: [{session_id}] Menerima data final_result dari backend."
+                                f"INFO: [{session_id}] Received final_result "
+                                f"from backend."
                             )
                             if thinking_step:
                                 await thinking_step.remove()
@@ -115,30 +129,30 @@ async def handle_message(message: cl.Message):
                             citations = data.get("citations", [])
 
                             print(
-                                f"DEBUG: [{session_id}] ISI REAL FINAL ANSWER: '{final_answer}'"
+                                f"DEBUG: [{session_id}] Final answer content: "
+                                f"'{final_answer}'"
                             )
                             print(
-                                f"DEBUG: [{session_id}] ISI REAL CITATIONS: {citations}"
+                                f"DEBUG: [{session_id}] Citations content: {citations}"
                             )
 
-                # 3. Pengaman visual jika loader masih tertinggal
                 if thinking_step:
                     await thinking_step.remove()
 
-                # 4. Render Dokumen Sitasi ke layar Sidebar jika ada
-                elements = []
+                elements: list[cl.Element] = []
                 print(
-                    f"INFO: [{session_id}] Memproses {len(citations)} sitasi hukum untuk ditampilkan."
+                    f"INFO: [{session_id}] Processing {len(citations)} "
+                    f"legal citations for display."
                 )
 
-                for _idx, cite in enumerate(citations, start=1):
+                for cite in citations:
                     raw_uu_id = cite.get("uu_id", "")
                     formatted_uu_id = UU_DISPLAY_MAP.get(raw_uu_id, raw_uu_id)
 
                     markdown_content = (
                         f"## ⚖️ {formatted_uu_id}\n"
-                        f"**{cite['bab']}**\n\n"
-                        f"{cite['text_parent']}\n\n"
+                        f"**{cite.get('bab', '')}**\n\n"
+                        f"{cite.get('text_parent', '')}\n\n"
                         f"---\n\n"
                     )
 
@@ -150,20 +164,15 @@ async def handle_message(message: cl.Message):
                         )
                     )
 
-                # 5. Cetak jawaban hukum final utuh ke layar secara instan dan bersih
                 msg_placeholder.content = final_answer
                 if elements:
                     msg_placeholder.elements = elements
                 await msg_placeholder.update()
 
-                print(
-                    f"INFO: [{session_id}] Jawaban hukum berhasil dirender ke UI pengguna."
-                )
+                print(f"INFO: [{session_id}] Successfully rendered legal response.")
 
     except httpx.RequestError as exc:
-        print(
-            f"ERROR: [{session_id}] Terjadi kesalahan jaringan saat menghubungi API: {exc}"
-        )
+        print(f"ERROR: [{session_id}] Network error connecting to backend API: {exc}")
 
         if thinking_step:
             await thinking_step.remove()

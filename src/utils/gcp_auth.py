@@ -1,6 +1,7 @@
 """Google Cloud Run authentication utilities for backend API requests."""
 
 import os
+from collections.abc import Generator
 
 import httpx
 
@@ -19,6 +20,8 @@ class GoogleCloudRunAuth(httpx.Auth):
     to avoid unnecessary metadata server calls during local development.
     """
 
+    requires_response_body = False
+
     def __init__(self, target_url: str) -> None:
         self.target_audience = target_url.replace("/api/v1/chat", "")
         self.metadata_endpoint = (
@@ -26,10 +29,9 @@ class GoogleCloudRunAuth(httpx.Auth):
             "/instance/service-accounts/default/identity"
         )
 
-    def requires_response_body(self, request: httpx.Request) -> bool:
-        return False
-
-    def auth_flow(self, request: httpx.Request):
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
         """Yield the request after optionally attaching a Google Identity Token.
 
         The token is fetched from the Cloud Run metadata server only when
