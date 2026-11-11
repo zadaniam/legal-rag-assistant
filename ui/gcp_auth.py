@@ -1,15 +1,13 @@
 """Google Cloud Run authentication utilities for backend API requests."""
 
-import os
 from collections.abc import Generator
 
 import httpx
+from chainlit.logger import logger
 
-from src.logger import logger
+from ui.config import ui_settings
 
-BACKEND_URL: str = os.getenv("BACKEND_URL", "http://127.0.0.1:7000")
-APP_ENV: str = os.getenv("APP_ENV", "development").lower()
-FASTAPI_CHAT_URL: str = f"{BACKEND_URL}/api/v1/chat"
+FASTAPI_CHAT_URL: str = f"{ui_settings.BACKEND_URL}/api/v1/chat"
 
 
 class GoogleCloudRunAuth(httpx.Auth):
@@ -39,7 +37,7 @@ class GoogleCloudRunAuth(httpx.Auth):
         request continues without a token to avoid blocking non-production
         environments.
         """
-        if APP_ENV == "production":
+        if ui_settings.ENVIRONMENT == "production":
             headers = {"Metadata-Flavor": "Google"}
             params = {"audience": self.target_audience}
 

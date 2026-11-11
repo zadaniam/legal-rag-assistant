@@ -7,7 +7,7 @@ from typing import Any
 import chainlit as cl
 import httpx
 
-from src.utils.gcp_auth import FASTAPI_CHAT_URL, create_backend_client
+from ui.gcp_auth import FASTAPI_CHAT_URL, create_backend_client
 
 NODE_DISPLAY_MAP: dict[str, str] = {
     "input_guard": "🛡️ Memeriksa Keamanan Input Pengguna",

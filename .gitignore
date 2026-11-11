@@ -31,8 +31,10 @@ htmlcov/
 .coverage.*
 coverage*
 
-# data files
+# data files & evaluation modules
 data/preprocessed/**/*
 data/processed/**/*
 !**/data/preprocessed/**/.gitkeep
 !**/data/processed/**/.gitkeep
+evaluation/**/*
+!**/evaluation/.gitkeep

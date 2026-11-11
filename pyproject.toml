@@ -1,7 +1,7 @@
 [project]
 name = "legal-rag-assistant"
 version = "0.1.0"
-description = "Chatbot Agentic RAG Asisten Legal menggunakan LangGraph dan Gemini"
+description = "HR Compliance Chatbot Assistant using LangGraph and Qdrant"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 license = "BUSL-1.1"
@@ -11,6 +11,11 @@ authors = [
 ]
 
 dependencies = [
+    "pydantic-settings~=2.15.0",
+]
+
+[project.optional-dependencies]
+backend = [
     "fastapi~=0.141.1",
     "uvicorn[standard]~=0.52.4",
     "langgraph~=1.2.11",
@@ -19,12 +24,13 @@ dependencies = [
     "fastembed~=0.8.0",
     "psycopg[binary]~=3.3.5",
     "langgraph-checkpoint-postgres~=3.1.2",
-    "pydantic-settings~=2.15.0",
     "loguru~=0.7.3",
-    "chainlit~=2.12.0",
-    "httpx~=0.28.1",
     "pymupdf4llm~=1.28.2",
     "pdfplumber~=0.11.10",
+]
+frontend = [
+    "chainlit~=2.12.0",
+    "httpx~=0.28.1",
 ]
 
 [dependency-groups]
@@ -47,8 +53,12 @@ pythonpath = ["."]
 addopts = "-v --cov=src --cov-report=term --cov-report=xml"
 
 [tool.coverage.run]
-source = ["src"]
 branch = true
+source = ["src"]
+omit = [
+    "src/main.py",
+    "src/database/init_*.py",
+]
 
 [tool.coverage.report]
 fail_under = 70
@@ -59,17 +69,7 @@ skip_covered = true
 line-length = 88
 target-version = "py312"
 extend-exclude = [
-    "src/data_pipeline/**",
-    "src/database/**",
-    "src/agent/**",
-    "src/api/**",
-    "src/main.py",
-    "ui/**",
-    "tests/e2e/**",
-    "tests/integration/**",
-    "tests/unit/data_pipeline/**",
-    "tests/unit/agent/**",
-    "tests/unit/conftest.py",
+    "src/agent/prompts.py**",
     "evaluation/**",
 ]
 
@@ -90,29 +90,16 @@ plugins = [
     "pydantic.mypy"
 ]
 
-ignore_missing_imports = true
-explicit_package_bases = true
-
-disallow_incomplete_defs = false
-disallow_untyped_defs = true
 check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
 
 warn_return_any = true
 warn_unused_configs = true
+explicit_package_bases = true
 
 exclude = [
-    '^src/data_pipeline/',
-    '^src/database/',
-    '^src/agent/',
-    '^src/api/',
-    '^src/main\.py$',
-    '^ui/',
-    '^tests/e2e/',
-    '^tests/integration/',
-    '^tests/unit/data_pipeline/',
-    '^tests/unit/agent/',
-    '^tests/unit/conftest\.py$',
-    '^tests/integration/conftest\.py$',
+    '^tests/',
     '^evaluation/',
 ]
 
