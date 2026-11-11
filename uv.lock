@@ -1680,20 +1680,26 @@ name = "legal-rag-assistant"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "chainlit" },
+    { name = "pydantic-settings" },
+]
+
+[package.optional-dependencies]
+backend = [
     { name = "fastapi" },
     { name = "fastembed" },
     { name = "google-genai" },
-    { name = "httpx" },
     { name = "langgraph" },
     { name = "langgraph-checkpoint-postgres" },
     { name = "loguru" },
     { name = "pdfplumber" },
     { name = "psycopg", extra = ["binary"] },
-    { name = "pydantic-settings" },
     { name = "pymupdf4llm" },
     { name = "qdrant-client" },
     { name = "uvicorn", extra = ["standard"] },
+]
+frontend = [
+    { name = "chainlit" },
+    { name = "httpx" },
 ]
 
 [package.dev-dependencies]
@@ -1711,21 +1717,22 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chainlit", specifier = "~=2.12.0" },
-    { name = "fastapi", specifier = "~=0.141.1" },
-    { name = "fastembed", specifier = "~=0.8.0" },
-    { name = "google-genai", specifier = "~=2.22.0" },
-    { name = "httpx", specifier = "~=0.28.1" },
-    { name = "langgraph", specifier = "~=1.2.11" },
-    { name = "langgraph-checkpoint-postgres", specifier = "~=3.1.2" },
-    { name = "loguru", specifier = "~=0.7.3" },
-    { name = "pdfplumber", specifier = "~=0.11.10" },
-    { name = "psycopg", extras = ["binary"], specifier = "~=3.3.5" },
+    { name = "chainlit", marker = "extra == 'frontend'", specifier = "~=2.12.0" },
+    { name = "fastapi", marker = "extra == 'backend'", specifier = "~=0.141.1" },
+    { name = "fastembed", marker = "extra == 'backend'", specifier = "~=0.8.0" },
+    { name = "google-genai", marker = "extra == 'backend'", specifier = "~=2.22.0" },
+    { name = "httpx", marker = "extra == 'frontend'", specifier = "~=0.28.1" },
+    { name = "langgraph", marker = "extra == 'backend'", specifier = "~=1.2.11" },
+    { name = "langgraph-checkpoint-postgres", marker = "extra == 'backend'", specifier = "~=3.1.2" },
+    { name = "loguru", marker = "extra == 'backend'", specifier = "~=0.7.3" },
+    { name = "pdfplumber", marker = "extra == 'backend'", specifier = "~=0.11.10" },
+    { name = "psycopg", extras = ["binary"], marker = "extra == 'backend'", specifier = "~=3.3.5" },
     { name = "pydantic-settings", specifier = "~=2.15.0" },
-    { name = "pymupdf4llm", specifier = "~=1.28.2" },
-    { name = "qdrant-client", specifier = "~=1.19.0" },
-    { name = "uvicorn", extras = ["standard"], specifier = "~=0.52.4" },
+    { name = "pymupdf4llm", marker = "extra == 'backend'", specifier = "~=1.28.2" },
+    { name = "qdrant-client", marker = "extra == 'backend'", specifier = "~=1.19.0" },
+    { name = "uvicorn", extras = ["standard"], marker = "extra == 'backend'", specifier = "~=0.52.4" },
 ]
+provides-extras = ["backend", "frontend"]
 
 [package.metadata.requires-dev]
 dev = [
