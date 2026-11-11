@@ -41,7 +41,7 @@ help: ## Show this help message
 # Setup & code quality
 # ==============================================================================
 sync: ## Install all dependencies (including the dev group)
-	$(UV) sync
+	$(UV) sync --all-extras
 
 lint: ## Lint and auto-fix with Ruff
 	$(UV) run ruff check . --fix
