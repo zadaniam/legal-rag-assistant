@@ -1,17 +1,22 @@
+"""Data preprocessing pipeline for legal documents.
+
+Orchestrates the extraction, cleaning, and parsing of raw legal PDF
+documents into Markdown format ready for ingestion.
+"""
+
 from src.config import pipeline_settings
 from src.data_pipeline.preprocess import cleaner, extractor, parser
 
 
-def run_preprocessing_pipeline():
-    print("STARTING DATA PREPROCESSING PIPELINE")
-
+def run_preprocessing_pipeline() -> None:
+    """Execute the full preprocessing pipeline: extract -> clean -> parse."""
     input_pdf = pipeline_settings.input_pdf
     extracted_dir = pipeline_settings.extracted_dir
     cleaned_file = pipeline_settings.cleaned_file
     parsed_md = pipeline_settings.parsed_md
 
     if not input_pdf.exists():
-        print(f"Error: File sumber PDF tidak ditemukan di: {input_pdf}")
+        print(f"Error: Source PDF file not found at: {input_pdf}")
         return
 
     print("\n--- [STEP 1/3] Extracting PDF Content ---")

@@ -1,4 +1,5 @@
-# src/api/v1/chat.py
+"""Chat API endpoint for the legal RAG assistant using Server-Sent Events (SSE)."""
+
 import json
 
 from fastapi import APIRouter, HTTPException, status
@@ -9,23 +10,29 @@ from pydantic import BaseModel, Field
 from src.agent.graph import compile_legal_graph
 from src.logger import logger
 
-router = APIRouter(prefix="/chat", tags=["Chat Sesi Hukum"])
+router = APIRouter(prefix="/chat", tags=["Legal Chat Session"])
 
 
 class ChatRequest(BaseModel):
+    """Request payload for the legal chat endpoint."""
+
     message: str = Field(
-        ..., description="Pesan pertanyaan hukum atau sapaan dari user."
+        ..., description="Legal question or greeting from the user."
     )
     session_id: str = Field(
         ...,
-        description="ID unik sesi obrolan (thread_id) untuk database memori Postgres.",
+        description=(
+            "Unique chat session ID (thread_id) for Postgres conversation memory."
+        ),
     )
 
 
 @router.post("")
 async def chat_with_legal_agent(payload: ChatRequest):
+    """Handle incoming chat requests and stream the legal agent response via SSE."""
     logger.info(
-        f"Menerima request HTTP Chat via APIRouter SSE Stream. Sesi: {payload.session_id}"
+        "Received HTTP Chat request via APIRouter SSE Stream. "
+        f"Session: {payload.session_id}"
     )
 
     input_state = {"messages": [HumanMessage(content=payload.message)]}
@@ -35,7 +42,6 @@ async def chat_with_legal_agent(payload: ChatRequest):
         legal_rag_graph = compile_legal_graph()
 
         async def event_generator():
-            # 1. Jalankan stream murni hanya untuk memberikan sinyal UI loading/node aktif
             async for chunk in legal_rag_graph.astream(
                 input_state, config=config, stream_mode="updates"
             ):
@@ -45,17 +51,14 @@ async def chat_with_legal_agent(payload: ChatRequest):
 
                 node_name = chunk_keys[0]
 
-                # Kirim sinyal node aktif ke Chainlit untuk visual progress bar
                 payload_node = {"event": "node_complete", "node": node_name}
                 yield f"data: {json.dumps(payload_node)}\n\n"
 
-            # 2. SOLUSI UTAMA: Ambil snapshot state TERAKHIR yang 100% utuh & valid dari LangGraph
             graph_state = await legal_rag_graph.aget_state(config)
             final_state = (
                 graph_state.values
-            )  # Ini adalah dictionary berisi state akhir yang komplit
+            )
 
-            # 3. Penyusunan payload jawaban final menggunakan data dari final_state yang terjamin
             filters = final_state.get("search_filters", {}) or {}
             is_chitchat = filters.get("is_chitchat", False)
 
@@ -75,16 +78,15 @@ async def chat_with_legal_agent(payload: ChatRequest):
             payload_final = {
                 "event": "final_result",
                 "session_id": payload.session_id,
-                "final_answer": final_state.get(
-                    "final_answer", ""
-                ),  # Dijamin tidak akan kosong lagi
+                "final_answer": final_state.get("final_answer", ""),
                 "system_status": final_state.get("system_status", "clear"),
                 "is_chitchat": is_chitchat,
                 "citations": citations_output,
             }
 
             logger.info(
-                f"Streaming selesai. Mengirimkan final_result untuk sesi: {payload.session_id}"
+                "Streaming complete. Sending final_result "
+                f"for session: {payload.session_id}"
             )
             yield f"data: {json.dumps(payload_final)}\n\n"
 
@@ -100,7 +102,7 @@ async def chat_with_legal_agent(payload: ChatRequest):
 
     except Exception as e:
         logger.exception(
-            f"Gagal memproses HTTP Chat SSE pada sesi {payload.session_id}: {e}"
+            f"Failed to process HTTP Chat SSE on session {payload.session_id}: {e}"
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

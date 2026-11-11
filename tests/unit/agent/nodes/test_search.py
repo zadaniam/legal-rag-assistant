@@ -1,4 +1,3 @@
-# tests/unit/nodes/test_search.py
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -10,10 +9,6 @@ from src.agent.state import LegalAgentState
 @pytest.mark.anyio
 @patch("src.agent.nodes.search.embed_text", new_callable=AsyncMock)
 async def test_legal_search_node_multi_query_parallel_success(mock_embed_text, mocker):
-    """TEST 1: Memastikan Node Search mampu memproses multi-query secara paralel
-    dan menggabungkan hasilnya dengan tepat dari beberapa UU berbeda.
-    """
-    # 1. Respon untuk Kueri 1 (Pesangon)
     mock_point_pesangon = MagicMock()
     mock_point_pesangon.id = 101
     mock_point_pesangon.score = 0.9542
@@ -28,7 +23,6 @@ async def test_legal_search_node_multi_query_parallel_success(mock_embed_text, m
     mock_resp_1 = MagicMock()
     mock_resp_1.points = [mock_point_pesangon]
 
-    # 2. Respon untuk Kueri 2 (BPJS)
     mock_point_bpjs = MagicMock()
     mock_point_bpjs.id = 202
     mock_point_bpjs.score = 0.8819
@@ -43,7 +37,6 @@ async def test_legal_search_node_multi_query_parallel_success(mock_embed_text, m
     mock_resp_2 = MagicMock()
     mock_resp_2.points = [mock_point_bpjs]
 
-    # KUNCI PERBAIKAN: Gunakan mocker.patch untuk mengganti metode query_points secara paksa di level target eksekusi node
     mock_query_points = mocker.patch(
         "src.agent.nodes.search.async_qdrant_client.query_points",
         new_callable=AsyncMock,
@@ -56,18 +49,22 @@ async def test_legal_search_node_multi_query_parallel_success(mock_embed_text, m
         "messages": [],
         "summary_memory": "",
         "search_payloads": [
-            {"query": "aturan uang pesangon", "target_uu": "uu_ketenagakerjaan_2003"},
-            {"query": "syarat klaim JHT BPJS", "target_uu": "Semua"},
+            {
+                "query": "aturan uang pesangon",
+                "target_uu": "uu_ketenagakerjaan_2003",
+            },
+            {
+                "query": "syarat klaim JHT BPJS",
+                "target_uu": "Semua",
+            },
         ],
         "retrieved_documents": [],
         "system_status": "clear",
         "final_answer": "",
     }
 
-    # Eksekusi Node
     node_output = await legal_search_node(mock_state)
 
-    # Validasi Gabungan
     assert "retrieved_documents" in node_output
     assert len(node_output["retrieved_documents"]) == 2
     assert node_output["retrieved_documents"][0]["pasal"] == "Pasal 156"
@@ -78,9 +75,6 @@ async def test_legal_search_node_multi_query_parallel_success(mock_embed_text, m
 @pytest.mark.anyio
 @patch("src.agent.nodes.search.embed_text", new_callable=AsyncMock)
 async def test_legal_search_node_deduplication_handling(mock_embed_text, mocker):
-    """TEST 2: Memastikan logika penapisan (deduplication) bekerja membuang dokumen
-    jika mendeteksi parent_id yang sama dari dua kueri berbeda.
-    """
     mock_point_1 = MagicMock()
     mock_point_1.id = 501
     mock_point_1.score = 0.90
@@ -103,7 +97,6 @@ async def test_legal_search_node_deduplication_handling(mock_embed_text, mocker)
     mock_resp_2 = MagicMock()
     mock_resp_2.points = [mock_point_2]
 
-    # KUNCI PERBAIKAN: Gunakan mocker.patch di level target
     mock_query_points = mocker.patch(
         "src.agent.nodes.search.async_qdrant_client.query_points",
         new_callable=AsyncMock,
@@ -114,8 +107,14 @@ async def test_legal_search_node_deduplication_handling(mock_embed_text, mocker)
     mock_state: LegalAgentState = {
         "messages": [],
         "search_payloads": [
-            {"query": "upah minimum", "target_uu": "uu_ketenagakerjaan_2003"},
-            {"query": "gaji standar", "target_uu": "Semua"},
+            {
+                "query": "upah minimum",
+                "target_uu": "uu_ketenagakerjaan_2003",
+            },
+            {
+                "query": "gaji standar",
+                "target_uu": "Semua",
+            },
         ],
         "retrieved_documents": [],
     }

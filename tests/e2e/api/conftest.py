@@ -1,4 +1,5 @@
-# tests/e2e/conftest.py
+"""Pytest configuration and shared fixtures for live E2E API tests."""
+
 import pytest_asyncio
 
 from src.database.connection import (
@@ -10,11 +11,10 @@ from src.database.connection import (
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def db_lifespan_e2e():
-    """Mengelola siklus hidup DB asli khusus untuk sesi pengujian live E2E."""
+    """Manages the real DB lifecycle for live E2E test sessions."""
     await init_database_connections()
     yield
 
-    # Hapus data log chat kotor dari HTTP Request di Postgres
     async with async_postgres_pool.connection() as conn:
         await conn.commit()
 

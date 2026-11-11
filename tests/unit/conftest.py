@@ -1,4 +1,5 @@
-# tests/unit/conftest.py
+"""Pytest configuration and shared fixtures for unit tests."""
+
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -6,8 +7,9 @@ import pytest
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_infrastructure_lifecycle(session_mocker):
-    """Otomatis memotong dan memalsukan seluruh koneksi fisik ke PostgreSQL.
-    Mencegah error PoolTimeout selama unit testing.
+    """Automatically mocks all physical PostgreSQL connections.
+
+    Prevents PoolTimeout errors during unit testing.
     """
     mock_pool = MagicMock()
     mock_pool.open = AsyncMock()
