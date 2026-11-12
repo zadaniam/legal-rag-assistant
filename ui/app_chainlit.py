@@ -6,6 +6,7 @@ from typing import Any
 
 import chainlit as cl
 import httpx
+from chainlit.logger import logger
 
 from ui.gcp_auth import FASTAPI_CHAT_URL, create_backend_client
 
@@ -29,7 +30,7 @@ async def start_chat() -> None:
     session_id = str(uuid.uuid4())
     cl.user_session.set("session_id", session_id)
 
-    print(f"INFO: [{session_id}] New chat session started by user.")
+    logger.info(f"[{session_id}] New chat session started by user.")
 
     greeting = (
         "Halo! Saya adalah **Asisten Hukum Ketenagakerjaan Indonesia**. "
@@ -44,8 +45,8 @@ async def handle_message(message: cl.Message) -> None:
     session_id = cl.user_session.get("session_id")
     payload = {"message": message.content, "session_id": session_id}
 
-    print(f"INFO: [{session_id}] Received user message: {message.content[:50]}...")
-    print(f"DEBUG: [{session_id}] Sending payload to backend: {json.dumps(payload)}")
+    logger.info(f"[{session_id}] Received user message: {message.content[:50]}...")
+    logger.debug(f"[{session_id}] Sending payload to backend: {json.dumps(payload)}")
 
     msg_placeholder = cl.Message(content="")
     await msg_placeholder.send()
@@ -61,14 +62,14 @@ async def handle_message(message: cl.Message) -> None:
 
     try:
         async with create_backend_client() as http_client:
-            print(f"INFO: [{session_id}] Opening stream to backend API...")
+            logger.info(f"[{session_id}] Opening stream to backend API...")
 
             async with http_client.stream(
                 "POST", FASTAPI_CHAT_URL, json=payload
             ) as response:
                 if response.status_code != 200:
-                    print(
-                        f"ERROR: [{session_id}] Backend failed with status: "
+                    logger.error(
+                        f"[{session_id}] Backend failed with status: "
                         f"{response.status_code}"
                     )
                     if thinking_step:
@@ -88,8 +89,8 @@ async def handle_message(message: cl.Message) -> None:
 
                         if event_type == "node_complete":
                             completed_node = data.get("node")
-                            print(
-                                f"INFO: [{session_id}] Node execution completed: "
+                            logger.info(
+                                f"[{session_id}] Node execution completed: "
                                 f"{completed_node}"
                             )
 
@@ -117,9 +118,8 @@ async def handle_message(message: cl.Message) -> None:
                                 await thinking_step.update()
 
                         elif event_type == "final_result":
-                            print(
-                                f"INFO: [{session_id}] Received final_result "
-                                f"from backend."
+                            logger.info(
+                                f"[{session_id}] Received final_result from backend."
                             )
                             if thinking_step:
                                 await thinking_step.remove()
@@ -128,20 +128,19 @@ async def handle_message(message: cl.Message) -> None:
                             final_answer = data.get("final_answer", "")
                             citations = data.get("citations", [])
 
-                            print(
-                                f"DEBUG: [{session_id}] Final answer content: "
-                                f"'{final_answer}'"
+                            logger.debug(
+                                f"[{session_id}] Final answer content: '{final_answer}'"
                             )
-                            print(
-                                f"DEBUG: [{session_id}] Citations content: {citations}"
+                            logger.debug(
+                                f"[{session_id}] Citations content: {citations}"
                             )
 
                 if thinking_step:
                     await thinking_step.remove()
 
                 elements: list[cl.Element] = []
-                print(
-                    f"INFO: [{session_id}] Processing {len(citations)} "
+                logger.info(
+                    f"[{session_id}] Processing {len(citations)} "
                     f"legal citations for display."
                 )
 
@@ -169,10 +168,10 @@ async def handle_message(message: cl.Message) -> None:
                     msg_placeholder.elements = elements
                 await msg_placeholder.update()
 
-                print(f"INFO: [{session_id}] Successfully rendered legal response.")
+                logger.info(f"[{session_id}] Successfully rendered legal response.")
 
     except httpx.RequestError as exc:
-        print(f"ERROR: [{session_id}] Network error connecting to backend API: {exc}")
+        logger.error(f"[{session_id}] Network error connecting to backend API: {exc}")
 
         if thinking_step:
             await thinking_step.remove()
