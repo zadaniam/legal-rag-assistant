@@ -6,11 +6,12 @@ on:
       - main
     paths:
       - 'src/**'
-      - 'ingestion/**'
       - 'tests/**'
       - 'Dockerfile'
       - 'pyproject.toml'
       - 'uv.lock'
+      - '.pre-commit-config.yaml'
+      - 'Makefile'
       - '.github/workflows/ci-backend.yml'
 
 jobs:
@@ -31,13 +32,19 @@ jobs:
           enable-cache: true
 
       - name: Install Dependencies
-        run: make sync
+        run: make sync-ci
 
-      - name: Run Linter (Ruff)
-        run: make lint
+      - name: Cache Pre-commit Environments
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
 
-      - name: Check Code Formatting (Ruff)
-        run: make format
+      - name: Run Pre-commit Checks (Including Hadolint)
+        run: make pre-commit-ci
+
+      - name: Run Type Checking (Mypy)
+        run: make types
 
       - name: Execute Unit Tests
         env:
