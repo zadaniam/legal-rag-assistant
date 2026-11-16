@@ -11,11 +11,18 @@ from qdrant_client import models
 
 from src.config import settings
 from src.database.connection import async_qdrant_client
+from src.database.vector_schema import (
+    EmbeddingSpec,
+    PreparedVectorPoint,
+    VectorName,
+)
 from src.logger import logger
 from src.utils.embeddings import ai_client
 
 
-async def prepare_and_upload_to_qdrant(prepared_points: list[dict]) -> None:
+async def prepare_and_upload_to_qdrant(
+    prepared_points: list[PreparedVectorPoint],
+) -> None:
     """Upload prepared points to Qdrant using streaming batch strategy.
 
     Embeds and uploads data in batches to avoid Idle Connection Timeout
@@ -38,19 +45,19 @@ async def prepare_and_upload_to_qdrant(prepared_points: list[dict]) -> None:
         f"-> Total data: {len(prepared_points)}. Split into {len(batches)} batch waves."
     )
 
-    async def process_single_point(data: dict) -> models.PointStruct:
+    async def process_single_point(data: PreparedVectorPoint) -> models.PointStruct:
         """Process a single data point using the official async SDK."""
         try:
             response = await ai_client.aio.models.embed_content(
-                model="models/gemini-embedding-2",
-                contents=data["text_to_embed"],
-                config=types.EmbedContentConfig(output_dimensionality=3072),
+                model=EmbeddingSpec.DENSE_MODEL,
+                contents=data.text_to_embed,
+                config=types.EmbedContentConfig(
+                    output_dimensionality=EmbeddingSpec.DENSE_DIMENSION
+                ),
             )
 
             if not response.embeddings or response.embeddings[0] is None:
-                raise ValueError(
-                    f"Empty embedding response for point {data['point_id']}."
-                )
+                raise ValueError(f"Empty embedding response for point {data.point_id}.")
 
             dense_vector = response.embeddings[0].values
 
@@ -58,27 +65,19 @@ async def prepare_and_upload_to_qdrant(prepared_points: list[dict]) -> None:
                 raise ValueError("Failed to retrieve: embedding values are None.")
 
             return models.PointStruct(
-                id=data["point_id"],
+                id=data.point_id,
                 vector={
-                    "text_dense": dense_vector,
-                    "text_sparse": models.Document(
-                        text=data["text_to_embed"], model="Qdrant/bm25"
+                    VectorName.DENSE.value: dense_vector,
+                    VectorName.SPARSE.value: models.Document(
+                        text=data.text_to_embed, model=EmbeddingSpec.SPARSE_MODEL
                     ),
                 },
-                payload={
-                    "text_child": data["text_child_raw"],
-                    "text_parent": data["text_parent_utuh"],
-                    "uu_id": data["uu_id"],
-                    "status_keberlakuan": "berlaku",
-                    "parent_id": data["parent_id"],
-                    "bab": data["bab"],
-                    "pasal": data["pasal"],
-                },
+                payload=data.payload.to_qdrant_payload(),
             )
 
         except Exception as e:
             logger.error(
-                f"[ERROR] Failed to process embedding for point {data['point_id']}: {e}"
+                f"[ERROR] Failed to process embedding for point {data.point_id}: {e}"
             )
             raise e
 
