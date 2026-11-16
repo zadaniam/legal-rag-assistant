@@ -13,6 +13,13 @@ from qdrant_client.models import Condition
 from src.agent.state import LegalAgentState
 from src.config import settings
 from src.database.connection import async_qdrant_client
+from src.database.vector_schema import (
+    EmbeddingSpec,
+    LegalChunkPayload,
+    LegalStatus,
+    PayloadField,
+    VectorName,
+)
 from src.logger import logger
 from src.utils.embeddings import embed_text
 
@@ -43,21 +50,23 @@ async def legal_search_node(state: LegalAgentState) -> dict:
     async def search_qdrant_worker(
         idx: int, payload: dict[str, Any]
     ) -> list[dict[str, Any]]:
-        target_uu = payload.get("target_uu", "Semua")
+        target_uu = payload.get("target_uu", LegalStatus.SEMUA.value)
         query_text = payload.get("query", "")
 
         query_vector = all_query_vectors[idx]
 
         must_conditions: list[Condition] = [
             models.FieldCondition(
-                key="status_keberlakuan", match=models.MatchValue(value="berlaku")
+                key=PayloadField.STATUS_KEBERLAKUAN.value,
+                match=models.MatchValue(value=LegalStatus.BERLAKU.value),
             )
         ]
 
-        if target_uu != "Semua":
+        if target_uu != LegalStatus.SEMUA.value:
             must_conditions.append(
                 models.FieldCondition(
-                    key="uu_id", match=models.MatchValue(value=target_uu)
+                    key=PayloadField.UU_ID.value,
+                    match=models.MatchValue(value=target_uu),
                 )
             )
 
@@ -74,13 +83,15 @@ async def legal_search_node(state: LegalAgentState) -> dict:
                 prefetch=[
                     models.Prefetch(
                         query=query_vector,
-                        using="text_dense",  # Matches the collection initialization
+                        using=VectorName.DENSE.value,
                         filter=search_filter,
                         limit=20,
                     ),
                     models.Prefetch(
-                        query=models.Document(text=query_text, model="Qdrant/bm25"),
-                        using="text_sparse",
+                        query=models.Document(
+                            text=query_text, model=EmbeddingSpec.SPARSE_MODEL
+                        ),
+                        using=VectorName.SPARSE.value,
                         filter=search_filter,
                         limit=20,
                     ),
@@ -93,13 +104,14 @@ async def legal_search_node(state: LegalAgentState) -> dict:
             detailed_points = []
             for point in response.points:
                 if point.payload:
+                    validated_payload = LegalChunkPayload.model_validate(point.payload)
                     detailed_points.append(
                         {
                             "id": point.id,
                             "score": point.score,
                             "triggered_by_query": query_text,
                             "target_uu_filter": target_uu,
-                            "payload": point.payload,
+                            "payload": validated_payload.to_qdrant_payload(),
                         }
                     )
             return detailed_points
@@ -111,16 +123,16 @@ async def legal_search_node(state: LegalAgentState) -> dict:
     tasks = [search_qdrant_worker(i, p) for i, p in enumerate(search_payloads)]
     batch_results = await asyncio.gather(*tasks)
 
-    all_results = []
-    seen_parents = set()
+    all_results: list[dict[str, Any]] = []
+    seen_parents: set[str] = set()
 
     for res_list in batch_results:
         for doc in res_list:
-            payload_data = doc.get("payload", {})
-            parent_id = payload_data.get("parent_id")
-            point_id = doc.get("id")  # Kept for log monitoring
+            payload_data: dict[str, Any] = doc.get("payload", {})
+            parent_id = payload_data.get(PayloadField.PARENT_ID.value)
+            point_id = doc.get("id")
 
-            if parent_id not in seen_parents:
+            if parent_id and parent_id not in seen_parents:
                 seen_parents.add(parent_id)
                 all_results.append(payload_data)
 
@@ -128,7 +140,7 @@ async def legal_search_node(state: LegalAgentState) -> dict:
                     "-> [RETRIEVED UNIQ] Parent ID: "
                     f"{parent_id} | Point ID: {point_id} | "
                     f"Score: {doc['score']:.4f} | "
-                    f"Pasal: {payload_data.get('pasal', 'N/A')} | "
+                    f"Pasal: {payload_data.get(PayloadField.PASAL.value, 'N/A')} | "
                     f"Query: '{doc['triggered_by_query']}'"
                 )
             else:
