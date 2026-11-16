@@ -2,19 +2,9 @@
 
 import asyncio
 
-from qdrant_client.models import (
-    Distance,
-    Modifier,
-    PayloadSchemaType,
-    SparseVectorParams,
-    TextIndexParams,
-    TextIndexType,
-    TokenizerType,
-    VectorParams,
-)
-
 from src.config import settings
 from src.database.connection import async_qdrant_client
+from src.database.vector_schema import QdrantCollectionSchema
 from src.logger import logger
 
 
@@ -64,37 +54,16 @@ async def init_qdrant_collections() -> None:
 
     await async_qdrant_client.create_collection(
         collection_name=collection_name,
-        vectors_config={
-            "text_dense": VectorParams(
-                size=3072,
-                distance=Distance.COSINE,
-            )
-        },
-        sparse_vectors_config={
-            "text_sparse": SparseVectorParams(modifier=Modifier.IDF)
-        },
+        vectors_config=QdrantCollectionSchema.vectors_config(),
+        sparse_vectors_config=QdrantCollectionSchema.sparse_vectors_config(),
     )
 
-    await async_qdrant_client.create_payload_index(
-        collection_name=collection_name,
-        field_name="text_child",
-        field_schema=TextIndexParams(
-            type=TextIndexType.TEXT,
-            tokenizer=TokenizerType.WORD,
-            lowercase=True,
-        ),
-    )
-
-    await async_qdrant_client.create_payload_index(
-        collection_name=collection_name,
-        field_name="status_keberlakuan",
-        field_schema=PayloadSchemaType.KEYWORD,
-    )
-    await async_qdrant_client.create_payload_index(
-        collection_name=collection_name,
-        field_name="uu_id",
-        field_schema=PayloadSchemaType.KEYWORD,
-    )
+    for field_name, field_schema in QdrantCollectionSchema.payload_indexes():
+        await async_qdrant_client.create_payload_index(
+            collection_name=collection_name,
+            field_name=field_name,
+            field_schema=field_schema,
+        )
 
     logger.info(f"Collection '{collection_name}' configured successfully.")
 

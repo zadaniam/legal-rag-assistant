@@ -11,6 +11,7 @@ from langsmith.wrappers import wrap_gemini
 from src.agent.prompts import LEGAL_REASONER_SYSTEM_PROMPT
 from src.agent.state import LegalAgentState
 from src.config import settings
+from src.database.vector_schema import PayloadField
 from src.logger import logger
 
 ai_client = wrap_gemini(
@@ -42,12 +43,16 @@ async def legal_reasoner_node(state: LegalAgentState) -> dict:
 
     formatted_docs = ""
     for idx, doc in enumerate(retrieved_docs, start=1):
+        content_text = doc.get(
+            PayloadField.TEXT_PARENT.value,
+            doc.get(PayloadField.TEXT_CHILD.value, ""),
+        )
         formatted_docs += (
             f"\nDokumen #{idx}:\n"
-            f"ID UU: {doc.get('uu_id', 'N/A')}\n"
-            f"Bab: {doc.get('bab', 'N/A')}\n"
-            f"Pasal: {doc.get('pasal', 'N/A')}\n"
-            f"Isi Konteks Hukum:\n{doc.get('text_parent', doc.get('text_child', ''))}\n"
+            f"ID UU: {doc.get(PayloadField.UU_ID.value, 'N/A')}\n"
+            f"Bab: {doc.get(PayloadField.BAB.value, 'N/A')}\n"
+            f"Pasal: {doc.get(PayloadField.PASAL.value, 'N/A')}\n"
+            f"Isi Konteks Hukum:\n{content_text}\n"
         )
 
     full_system_instruction = LEGAL_REASONER_SYSTEM_PROMPT.format(

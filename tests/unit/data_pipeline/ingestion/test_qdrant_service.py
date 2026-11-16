@@ -4,25 +4,36 @@ import pytest
 from qdrant_client.models import PointStruct
 
 from src.data_pipeline.ingestion.qdrant_service import prepare_and_upload_to_qdrant
+from src.database.vector_schema import (
+    EmbeddingSpec,
+    LegalChunkPayload,
+    LegalStatus,
+    PayloadField,
+    PreparedVectorPoint,
+    VectorName,
+)
 
 
 @pytest.mark.asyncio
 async def test_prepare_and_upload_to_qdrant_success(mocker):
     mock_prepared_points = [
-        {
-            "point_id": "mock-uuid-child-1",
-            "parent_id": "mock-uuid-parent-1",
-            "text_to_embed": "UU BPJS [BAB I - Pasal 1]: Teks kontens child",
-            "text_child_raw": "Teks kontens child",
-            "text_parent_utuh": "Pasal 1\nTeks kontens parent utuh satu pasal.",
-            "uu_id": "uu_bpjs_2011",
-            "bab": "BAB I",
-            "pasal": "Pasal 1",
-        }
+        PreparedVectorPoint(
+            point_id="mock-uuid-child-1",
+            text_to_embed="UU BPJS [BAB I - Pasal 1]: Teks kontens child",
+            payload=LegalChunkPayload(
+                text_child="Teks kontens child",
+                text_parent="Pasal 1\nTeks kontens parent utuh satu pasal.",
+                uu_id="uu_bpjs_2011",
+                status_keberlakuan=LegalStatus.BERLAKU.value,
+                parent_id="mock-uuid-parent-1",
+                bab="BAB I",
+                pasal="Pasal 1",
+            ),
+        )
     ]
 
     mock_embeddings_obj = MagicMock()
-    mock_embeddings_obj.values = [0.1] * 3072
+    mock_embeddings_obj.values = [0.1] * EmbeddingSpec.DENSE_DIMENSION
 
     mock_embed_response = MagicMock()
     mock_embed_response.embeddings = [mock_embeddings_obj]
@@ -45,7 +56,7 @@ async def test_prepare_and_upload_to_qdrant_success(mocker):
     await prepare_and_upload_to_qdrant(mock_prepared_points)
 
     mock_embed_content.assert_called_once_with(
-        model="models/gemini-embedding-2",
+        model=EmbeddingSpec.DENSE_MODEL,
         contents="UU BPJS [BAB I - Pasal 1]: Teks kontens child",
         config=mocker.ANY,
     )
@@ -61,11 +72,14 @@ async def test_prepare_and_upload_to_qdrant_success(mocker):
     sample_point = uploaded_points[0]
     assert isinstance(sample_point, PointStruct)
     assert sample_point.id == "mock-uuid-child-1"
-    assert "text_dense" in sample_point.vector
-    assert "text_sparse" in sample_point.vector
+    assert VectorName.DENSE.value in sample_point.vector
+    assert VectorName.SPARSE.value in sample_point.vector
 
     payload = sample_point.payload
-    assert payload["text_child"] == "Teks kontens child"
-    assert payload["text_parent"] == "Pasal 1\nTeks kontens parent utuh satu pasal."
-    assert payload["uu_id"] == "uu_bpjs_2011"
+    assert payload[PayloadField.TEXT_CHILD.value] == "Teks kontens child"
+    assert (
+        payload[PayloadField.TEXT_PARENT.value]
+        == "Pasal 1\nTeks kontens parent utuh satu pasal."
+    )
+    assert payload[PayloadField.UU_ID.value] == "uu_bpjs_2011"
     assert "bagian" not in payload

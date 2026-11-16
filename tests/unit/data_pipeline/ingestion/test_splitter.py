@@ -1,4 +1,9 @@
 from src.data_pipeline.ingestion.splitter import split_laws_into_hierarchical_points
+from src.database.vector_schema import (
+    LegalChunkPayload,
+    LegalStatus,
+    PreparedVectorPoint,
+)
 
 
 def test_split_laws_into_hierarchical_points_clean_hierarchy():
@@ -22,21 +27,24 @@ def test_split_laws_into_hierarchical_points_clean_hierarchy():
     assert len(result_points) > 0
 
     sample_point = result_points[0]
+    assert isinstance(sample_point, PreparedVectorPoint)
+    assert isinstance(sample_point.payload, LegalChunkPayload)
 
-    expected_keys = {
-        "point_id",
-        "parent_id",
-        "text_to_embed",
-        "text_child_raw",
-        "text_parent_utuh",
+    payload_dict = sample_point.payload.to_qdrant_payload()
+    expected_payload_keys = {
+        "text_child",
+        "text_parent",
         "uu_id",
+        "status_keberlakuan",
+        "parent_id",
         "bab",
         "pasal",
     }
-    assert expected_keys.issubset(sample_point.keys())
-    assert "bagian" not in sample_point
+    assert expected_payload_keys.issubset(payload_dict.keys())
+    assert "bagian" not in payload_dict
+    assert sample_point.payload.status_keberlakuan == LegalStatus.BERLAKU.value
 
     expected_prefix = "UU BPJS [BAB I KETENTUAN UMUM - Pasal 1]:"
-    assert sample_point["text_to_embed"].startswith(expected_prefix), (
+    assert sample_point.text_to_embed.startswith(expected_prefix), (
         "Format prefix hirarki UU->BAB->Pasal salah"
     )
