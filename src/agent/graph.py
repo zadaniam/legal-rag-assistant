@@ -2,12 +2,12 @@
 
 from typing import Any, cast
 
-from langgraph.checkpoint.postgres.aio import (
-    AsyncPostgresSaver,
-)
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from src.agent.configuration import AgentConfiguration
+from src.agent.edges import route_after_context, route_after_input_guard
 from src.agent.nodes.context import context_manager_node
 from src.agent.nodes.input_guard import input_guard_node
 from src.agent.nodes.output_guard import output_guard_node
@@ -17,31 +17,7 @@ from src.agent.state import LegalAgentState
 from src.database.connection import async_postgres_pool
 from src.logger import logger
 
-
-def route_after_input_guard(state: LegalAgentState) -> str:
-    """Route to end if input is flagged, otherwise continue to context manager."""
-    if state.get("system_status") == "flagged_input":
-        logger.warning("Hazardous input detected! Skipping to end node.")
-        return "end_process"
-    return "continue_process"
-
-
-def route_after_context(state: LegalAgentState) -> str:
-    """Route to reasoner for chitchat, otherwise to search for legal queries."""
-    filters = state.get("search_filters", {})
-    if filters.get("is_chitchat"):
-        logger.info("Input detected as chitchat. Skipping directly to reasoner.")
-        return "skip_search"
-    logger.info("Input detected as legal query. Proceeding to Qdrant search.")
-    return "go_to_search"
-
-
-def route_after_output_guard(state: LegalAgentState) -> str:
-    """Always route to end after output guard."""
-    return "end_process"
-
-
-builder = StateGraph(LegalAgentState)
+builder = StateGraph(LegalAgentState, context_schema=AgentConfiguration)
 
 builder.add_node("input_guard", input_guard_node)
 builder.add_node("context_manager", context_manager_node)
@@ -65,10 +41,7 @@ builder.add_conditional_edges(
 
 builder.add_edge("legal_search", "legal_reasoner")
 builder.add_edge("legal_reasoner", "output_guard")
-
-builder.add_conditional_edges(
-    "output_guard", route_after_output_guard, {"end_process": END}
-)
+builder.add_edge("output_guard", END)
 
 legal_rag_graph: CompiledStateGraph | None = None
 
