@@ -6,8 +6,10 @@ legal documents from Qdrant.
 
 from google import genai
 from google.genai import types
+from langchain_core.runnables import RunnableConfig
 from langsmith.wrappers import wrap_gemini
 
+from src.agent.configuration import AgentConfiguration
 from src.agent.prompts import LEGAL_REASONER_SYSTEM_PROMPT
 from src.agent.state import LegalAgentState
 from src.config import settings
@@ -19,7 +21,9 @@ ai_client = wrap_gemini(
 )
 
 
-async def legal_reasoner_node(state: LegalAgentState) -> dict:
+async def legal_reasoner_node(
+    state: LegalAgentState, config: RunnableConfig | None = None
+) -> dict:
     """Generate legal answer with citations using Gemini."""
     filters = state.get("search_filters", {})
     if filters.get("is_chitchat"):
@@ -41,6 +45,8 @@ async def legal_reasoner_node(state: LegalAgentState) -> dict:
             )
         }
 
+    agent_cfg = AgentConfiguration.from_runnable_config(config)
+
     formatted_docs = ""
     for idx, doc in enumerate(retrieved_docs, start=1):
         content_text = doc.get(
@@ -61,11 +67,11 @@ async def legal_reasoner_node(state: LegalAgentState) -> dict:
 
     try:
         response = await ai_client.aio.models.generate_content(
-            model="gemini-3.5-flash-lite",  # Compliant with restrictive instructions
+            model=agent_cfg.reasoner_model,
             contents=user_message,
             config=types.GenerateContentConfig(
                 system_instruction=full_system_instruction,
-                temperature=0.2,  # Low temperature: focus on original legal text
+                temperature=agent_cfg.reasoner_temperature,
             ),
         )
 
