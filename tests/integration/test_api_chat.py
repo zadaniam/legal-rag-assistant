@@ -31,7 +31,7 @@ async def test_api_chat_validation_error_on_empty_payload():
 
 
 @pytest.mark.asyncio
-@patch("src.api.v1.chat.compile_legal_graph")
+@patch("src.services.chat_service.compile_legal_graph")
 async def test_api_chat_endpoint_success(mock_compile_legal_graph):
     async def mock_astream(*args, **kwargs):
         yield {
@@ -75,15 +75,15 @@ async def test_api_chat_endpoint_success(mock_compile_legal_graph):
     assert response.status_code == 200
     assert "text/event-stream" in response.headers["content-type"]
 
-    final_result_line = next(
-        (
-            line
-            for line in response.text.splitlines()
-            if 'event": "final_result"' in line
-        ),
-        "",
+    final_result_line = [
+        json.loads(line.removeprefix("data: "))
+        for line in response.text.splitlines()
+        if line.startswith("data: ")
+    ]
+    json_data = next(
+        (event for event in final_result_line if event.get("event") == "final_result"),
+        {},
     )
-    json_data = json.loads(final_result_line.replace("data: ", "", 1))
 
     assert json_data["session_id"] == "sesi_http_test_01"
     assert json_data["system_status"] == "clear"
