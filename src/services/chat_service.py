@@ -8,6 +8,7 @@ from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 
 from src.agent.graph import compile_legal_graph
+from src.agent.state import LegalAgentState
 from src.logger import logger
 from src.schemas.chat import ChatFinalResponse, ChatRequest, CitationResponse
 
@@ -18,7 +19,9 @@ class ChatService:
     @staticmethod
     async def stream_chat_response(payload: ChatRequest) -> AsyncGenerator[str, None]:
         """Execute the legal RAG graph and yield formatted SSE events."""
-        input_state = {"messages": [HumanMessage(content=payload.message)]}
+        input_state = cast(
+            LegalAgentState, {"messages": [HumanMessage(content=payload.message)]}
+        )
         config = cast(
             RunnableConfig, {"configurable": {"thread_id": payload.session_id}}
         )

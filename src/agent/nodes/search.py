@@ -7,9 +7,11 @@ with RRF fusion) using queries decomposed by the context manager.
 import asyncio
 from typing import Any
 
+from langchain_core.runnables import RunnableConfig
 from qdrant_client import models
 from qdrant_client.models import Condition
 
+from src.agent.configuration import AgentConfiguration
 from src.agent.state import LegalAgentState
 from src.config import settings
 from src.database.connection import async_qdrant_client
@@ -24,7 +26,9 @@ from src.logger import logger
 from src.utils.embeddings import embed_text
 
 
-async def legal_search_node(state: LegalAgentState) -> dict:
+async def legal_search_node(
+    state: LegalAgentState, config: RunnableConfig | None = None
+) -> dict:
     """Execute async Qdrant hybrid search using decomposed queries."""
     if async_qdrant_client is None:
         raise RuntimeError(
@@ -37,6 +41,7 @@ async def legal_search_node(state: LegalAgentState) -> dict:
         logger.info("No search payloads. Skipping Qdrant process.")
         return {"retrieved_documents": []}
 
+    agent_cfg = AgentConfiguration.from_runnable_config(config)
     collection_name = settings.QDRANT_COLLECTION_NAME
 
     queries_to_embed = [p.get("query", "") for p in search_payloads]
@@ -85,7 +90,7 @@ async def legal_search_node(state: LegalAgentState) -> dict:
                         query=query_vector,
                         using=VectorName.DENSE.value,
                         filter=search_filter,
-                        limit=20,
+                        limit=agent_cfg.qdrant_prefetch_limit,
                     ),
                     models.Prefetch(
                         query=models.Document(
@@ -93,11 +98,11 @@ async def legal_search_node(state: LegalAgentState) -> dict:
                         ),
                         using=VectorName.SPARSE.value,
                         filter=search_filter,
-                        limit=20,
+                        limit=agent_cfg.qdrant_prefetch_limit,
                     ),
                 ],
                 query=models.FusionQuery(fusion=models.Fusion.RRF),
-                limit=3,
+                limit=agent_cfg.qdrant_fusion_limit,
                 with_payload=True,
             )
 

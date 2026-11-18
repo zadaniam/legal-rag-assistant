@@ -10,9 +10,11 @@ import re
 
 from google import genai
 from google.genai import types
+from langchain_core.runnables import RunnableConfig
 from langsmith.wrappers import wrap_gemini
 from pydantic import BaseModel, Field
 
+from src.agent.configuration import AgentConfiguration
 from src.agent.prompts import OUTPUT_GUARD_SYSTEM_PROMPT
 from src.agent.state import LegalAgentState
 from src.config import settings
@@ -33,7 +35,9 @@ ai_client = wrap_gemini(
 )
 
 
-async def output_guard_node(state: LegalAgentState) -> dict:
+async def output_guard_node(
+    state: LegalAgentState, config: RunnableConfig | None = None
+) -> dict:
     """Validate AI answer for hallucination using regex and Gemini."""
     filters = state.get("search_filters", {})
     if filters.get("is_chitchat"):
@@ -71,6 +75,8 @@ async def output_guard_node(state: LegalAgentState) -> dict:
                 ),
             }
 
+    agent_cfg = AgentConfiguration.from_runnable_config(config)
+
     formatted_docs = "\n".join(
         [
             f"{d.get('pasal', 'Pasal N/A')}: "
@@ -84,11 +90,11 @@ async def output_guard_node(state: LegalAgentState) -> dict:
 
     try:
         response = await ai_client.aio.models.generate_content(
-            model="gemini-3.5-flash-lite",
+            model=agent_cfg.auditor_model,
             contents=user_query,
             config=types.GenerateContentConfig(
                 system_instruction=OUTPUT_GUARD_SYSTEM_PROMPT,
-                temperature=0.0,
+                temperature=agent_cfg.auditor_temperature,
                 response_mime_type="application/json",
                 response_schema=OutputAuditorSchema,
             ),

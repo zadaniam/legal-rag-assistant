@@ -8,8 +8,10 @@ import json
 
 from google import genai
 from google.genai import types
+from langchain_core.runnables import RunnableConfig
 from pydantic import BaseModel, Field
 
+from src.agent.configuration import AgentConfiguration
 from src.agent.prompts import INPUT_GUARD_SYSTEM_PROMPT
 from src.agent.state import LegalAgentState
 from src.config import settings
@@ -37,7 +39,9 @@ class InputGuardOutputSchema(BaseModel):
 ai_client = genai.Client(api_key=settings.GEMINI_API_KEY.get_secret_value())
 
 
-async def input_guard_node(state: LegalAgentState) -> dict:
+async def input_guard_node(
+    state: LegalAgentState, config: RunnableConfig | None = None
+) -> dict:
     """Check user input for safety using Gemini classification."""
     user_message = state["messages"][-1].content
 
@@ -45,13 +49,15 @@ async def input_guard_node(state: LegalAgentState) -> dict:
         msg_type = type(user_message).__name__
         raise TypeError(f"Expected user_message to be str, got {msg_type}")
 
+    agent_cfg = AgentConfiguration.from_runnable_config(config)
+
     try:
         response = await ai_client.aio.models.generate_content(
-            model="gemini-3.5-flash-lite",
+            model=agent_cfg.guard_model,
             contents=user_message,
             config=types.GenerateContentConfig(
                 system_instruction=INPUT_GUARD_SYSTEM_PROMPT,
-                temperature=0.0,
+                temperature=agent_cfg.guard_temperature,
                 response_mime_type="application/json",
                 response_schema=InputGuardOutputSchema,
             ),

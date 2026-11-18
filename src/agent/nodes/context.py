@@ -9,9 +9,11 @@ import json
 from google import genai
 from google.genai import types
 from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.runnables import RunnableConfig
 from langsmith.wrappers import wrap_gemini
 from pydantic import BaseModel, Field
 
+from src.agent.configuration import AgentConfiguration
 from src.agent.prompts import CONTEXT_MANAGER_SYSTEM_PROMPT
 from src.agent.state import LegalAgentState
 from src.config import settings
@@ -58,13 +60,17 @@ ai_client = wrap_gemini(
 )
 
 
-async def context_manager_node(state: LegalAgentState) -> dict:
+async def context_manager_node(
+    state: LegalAgentState, config: RunnableConfig | None = None
+) -> dict:
     """Classify user input and extract search payloads using Gemini router."""
     all_messages = state.get("messages", [])
+    agent_cfg = AgentConfiguration.from_runnable_config(config)
 
-    # Keep only the last 10 messages (5 user + 5 AI) before the current input,
-    # excluding the most recent message which is the current user input.
-    recent_history_messages = all_messages[:-1][-10:] if len(all_messages) > 1 else []
+    history_limit = agent_cfg.max_history_messages
+    recent_history_messages = (
+        all_messages[:-1][-history_limit:] if len(all_messages) > 1 else []
+    )
 
     formatted_recent_history = ""
     for msg in recent_history_messages:
@@ -84,11 +90,11 @@ async def context_manager_node(state: LegalAgentState) -> dict:
 
     try:
         response = await ai_client.aio.models.generate_content(
-            model="gemini-3.5-flash-lite",  # Fast and smart for classification/routing
+            model=agent_cfg.router_model,
             contents=user_message,
             config=types.GenerateContentConfig(
                 system_instruction=full_system_instruction,
-                temperature=0.0,  # Deterministic output: 0.0 prevents varying answers
+                temperature=agent_cfg.router_temperature,
                 response_mime_type="application/json",
                 response_schema=RouterOutputSchema,
             ),
