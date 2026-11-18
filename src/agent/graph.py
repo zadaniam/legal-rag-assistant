@@ -43,10 +43,14 @@ builder.add_edge("legal_search", "legal_reasoner")
 builder.add_edge("legal_reasoner", "output_guard")
 builder.add_edge("output_guard", END)
 
-legal_rag_graph: CompiledStateGraph | None = None
+type LegalCompiledGraph = CompiledStateGraph[
+    LegalAgentState, AgentConfiguration, LegalAgentState, LegalAgentState
+]
+
+legal_rag_graph: LegalCompiledGraph | None = None
 
 
-def compile_legal_graph() -> CompiledStateGraph:
+def compile_legal_graph() -> LegalCompiledGraph:
     """Compile the LangGraph blueprint with an async Postgres checkpointer.
 
     The checkpointer is initialized from the PostgreSQL connection pool, which
