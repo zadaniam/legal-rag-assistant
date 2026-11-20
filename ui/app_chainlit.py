@@ -11,11 +11,11 @@ from chainlit.logger import logger
 from ui.gcp_auth import FASTAPI_CHAT_URL, create_backend_client
 
 NODE_DISPLAY_MAP: dict[str, str] = {
-    "input_guard": "🛡️ Memeriksa Keamanan Input Pengguna",
-    "context_manager": "🧠 Menganalisis Konteks & Rute Pertanyaan",
-    "legal_search": "🔍 Mencari Referensi Pasal Hukum di Database Qdrant",
-    "legal_reasoner": "⚖️ Menyusun Analisis & Argumen Hukum",
-    "output_guard": "🔬 Memverifikasi Akurasi dan Validitas Jawaban",
+    "input_guard": "Memeriksa Keamanan Input Pengguna",
+    "context_manager": "Menganalisis Konteks & Rute Pertanyaan",
+    "legal_search": "Mencari Referensi Pasal Hukum di Database Qdrant",
+    "legal_reasoner": "Menyusun Analisis & Argumen Hukum",
+    "output_guard": "Memverifikasi Akurasi dan Validitas Jawaban",
 }
 
 UU_DISPLAY_MAP: dict[str, str] = {
@@ -33,9 +33,12 @@ async def start_chat() -> None:
     logger.info(f"[{session_id}] New chat session started by user.")
 
     greeting = (
-        "Halo! Saya adalah **Asisten Hukum Ketenagakerjaan Indonesia**. "
-        "Silakan tanyakan masalah ketenagakerjaan Anda."
+        "Halo! Saya adalah **Asisten Hukum Ketenagakerjaan & Jaminan Sosial "
+        "Indonesia**. Silakan ajukan pertanyaan seputar regulasi "
+        "ketenagakerjaan (UU Ketenagakerjaan) maupun program jaminan sosial "
+        "(UU BPJS)."
     )
+
     await cl.Message(content=greeting).send()
 
 
@@ -51,7 +54,7 @@ async def handle_message(message: cl.Message) -> None:
     msg_placeholder = cl.Message(content="")
     await msg_placeholder.send()
 
-    thinking_step: cl.Step | None = cl.Step(name="AnalisisSistem", type="tool")
+    thinking_step: cl.Step | None = cl.Step(name="Analisis Sistem", type="tool")
 
     if thinking_step:
         thinking_step.output = "🤖 Asisten Hukum sedang menganalisis regulasi..."
@@ -97,22 +100,22 @@ async def handle_message(message: cl.Message) -> None:
                             if thinking_step:
                                 if completed_node == "input_guard":
                                     thinking_step.output = (
-                                        "🛡️ Keamanan input tervalidasi. "
+                                        "Keamanan input tervalidasi. "
                                         "Menganalisis konteks hukum..."
                                     )
                                 elif completed_node == "context_manager":
                                     thinking_step.output = (
-                                        "🧠 Mengekstrak referensi pasal dan "
+                                        "Mengekstrak referensi pasal dan "
                                         "memproses database..."
                                     )
                                 elif completed_node == "legal_search":
                                     thinking_step.output = (
-                                        "🔍 Menyusun argumentasi hukum dan "
+                                        "Menyusun argumentasi hukum dan "
                                         "pasal ketenagakerjaan..."
                                     )
                                 elif completed_node == "legal_reasoner":
                                     thinking_step.output = (
-                                        "⚖️ Memverifikasi validitas akhir dan "
+                                        "Memverifikasi validitas akhir dan "
                                         "akurasi jawaban..."
                                     )
                                 await thinking_step.update()

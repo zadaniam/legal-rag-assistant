@@ -1,14 +1,27 @@
-# Welcome to Chainlit! 🚀🤖
+# Asisten Hukum Ketenagakerjaan & Jaminan Sosial Indonesia
 
-Hi there, Developer! 👋 We're excited to have you on board. Chainlit is a powerful tool designed to help you prototype, debug and share applications built on top of LLMs.
+Asisten virtual untuk membantu tim HR, pelaku usaha, dan pekerja menelusuri regulasi ketenagakerjaan serta jaminan sosial di Indonesia berdasarkan teks undang-undang yang berlaku.
 
-## Useful Links 🔗
+## Basis Pengetahuan Regulasi
 
-- **Documentation:** Get started with our comprehensive [Chainlit Documentation](https://docs.chainlit.io) 📚
-- **Discord Community:** Join our friendly [Chainlit Discord](https://discord.gg/k73SQ3FyUh) to ask questions, share your projects, and connect with other developers! 💬
+Seluruh jawaban disusun berdasarkan rujukan langsung dari dokumen peraturan berikut:
 
-We can't wait to see what you create with Chainlit! Happy coding! 💻😊
+* **UU No. 13 Tahun 2003** tentang Ketenagakerjaan.
+* **UU No. 24 Tahun 2011** tentang Badan Penyelenggara Jaminan Sosial (**BPJS**).
 
-## Welcome screen
+## Panduan Penggunaan
 
-To modify the welcome screen, edit the `chainlit.md` file at the root of your project. If you do not want a welcome screen, just leave this file empty.
+* **Ajukan Pertanyaan Spesifik:** Tulis pertanyaan Anda dalam bahasa sehari-hari terkait kebijakan SDM, hubungan kerja, maupun kepesertaan jaminan sosial.
+* **Periksa Sitasi Pasal:** Setiap jawaban menyertakan rujukan pasal terkait. Klik bagian sitasi pada jawaban untuk membuka **Panel Referensi Pasal** di sisi kanan layar dan membaca bunyi pasal aslinya secara utuh.
+
+## Contoh Pertanyaan
+
+* *"Bagaimana ketentuan masa percobaan (probation) untuk karyawan PKWT dan PKWTT?"*
+* *"Apa saja komponen upah yang menjadi dasar perhitungan iuran BPJS Ketenagakerjaan?"*
+* *"Bagaimana aturan mengenai hak cuti tahunan dan cuti melahirkan bagi pekerja?"*
+* *"Apa kewajiban perusahaan terkait pendaftaran pekerja ke dalam program BPJS?"*
+
+---
+
+> **Penyangkalan Hukum (Legal Disclaimer)**
+> Informasi yang disajikan oleh sistem ini bersifat informatif dan ditujukan sebagai referensi awal berdasarkan teks undang-undang yang tersedia di dalam basis data. Jawaban yang dihasilkan bukan merupakan nasihat hukum resmi (*legal opinion*) dan tidak menggantikan konsultasi dengan advokat, konsultan hukum, maupun instansi ketenagakerjaan yang berwenang.
