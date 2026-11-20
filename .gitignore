@@ -30,6 +30,7 @@ htmlcov/
 .coverage
 .coverage.*
 coverage*
+.langgraph_api
 
 # data files & evaluation modules
 data/preprocessed/**/*
