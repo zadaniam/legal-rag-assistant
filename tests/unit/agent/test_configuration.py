@@ -8,10 +8,10 @@ from src.agent.configuration import AgentConfiguration
 def test_agent_configuration_defaults_when_config_is_none() -> None:
     cfg = AgentConfiguration.from_runnable_config(None)
 
-    assert cfg.guard_model == "gemini-3.5-flash-lite"
-    assert cfg.router_model == "gemini-3.5-flash-lite"
-    assert cfg.reasoner_model == "gemini-3.5-flash-lite"
-    assert cfg.auditor_model == "gemini-3.5-flash-lite"
+    assert cfg.guard_model == "google_genai:gemini-3.5-flash-lite"
+    assert cfg.router_model == "google_genai:gemini-3.5-flash-lite"
+    assert cfg.reasoner_model == "google_genai:gemini-3.5-flash-lite"
+    assert cfg.auditor_model == "google_genai:gemini-3.5-flash-lite"
     assert cfg.reasoner_temperature == 0.2
     assert cfg.qdrant_prefetch_limit == 20
     assert cfg.qdrant_fusion_limit == 3
@@ -36,5 +36,5 @@ def test_agent_configuration_overrides_and_ignores_unknown_keys() -> None:
     assert cfg.reasoner_model == "gemini-3.5-pro"
     assert cfg.qdrant_fusion_limit == 5
     assert cfg.reasoner_temperature == 0.0
-    assert cfg.guard_model == "gemini-3.5-flash-lite"
+    assert cfg.guard_model == "google_genai:gemini-3.5-flash-lite"
     assert cfg.qdrant_prefetch_limit == 20

@@ -1,30 +1,26 @@
 """Legal reasoner node for the legal RAG agent.
 
-Generates legal answers with citations using Gemini, grounded in retrieved
-legal documents from Qdrant.
+Generates legal answers with citations using a provider-agnostic chat model,
+grounded in retrieved legal documents from Qdrant.
 """
 
-from google import genai
-from google.genai import types
+from typing import Any
+
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
-from langsmith.wrappers import wrap_gemini
 
 from src.agent.configuration import AgentConfiguration
 from src.agent.prompts import LEGAL_REASONER_SYSTEM_PROMPT
 from src.agent.state import LegalAgentState
-from src.config import settings
 from src.database.vector_schema import PayloadField
 from src.logger import logger
-
-ai_client = wrap_gemini(
-    genai.Client(api_key=settings.GEMINI_API_KEY.get_secret_value())
-)
+from src.utils.llm import get_chat_model
 
 
 async def legal_reasoner_node(
     state: LegalAgentState, config: RunnableConfig | None = None
-) -> dict:
-    """Generate legal answer with citations using Gemini."""
+) -> dict[str, Any]:
+    """Generate legal answer with citations using the configured chat model."""
     filters = state.get("search_filters", {})
     if filters.get("is_chitchat"):
         logger.info("Forwarding chitchat response directly to user.")
@@ -34,7 +30,7 @@ async def legal_reasoner_node(
         return {"final_answer": chitchat_ans, "retrieved_documents": []}
 
     retrieved_docs = state.get("retrieved_documents", []) or []
-    user_message = state["messages"][-1].content
+    user_message = str(state["messages"][-1].content)
 
     if not retrieved_docs:
         logger.warning("Reasoner node detected no legal documents provided.")
@@ -66,17 +62,18 @@ async def legal_reasoner_node(
     )
 
     try:
-        response = await ai_client.aio.models.generate_content(
+        llm = get_chat_model(
             model=agent_cfg.reasoner_model,
-            contents=user_message,
-            config=types.GenerateContentConfig(
-                system_instruction=full_system_instruction,
-                temperature=agent_cfg.reasoner_temperature,
-            ),
+            temperature=agent_cfg.reasoner_temperature,
         )
+        messages = [
+            SystemMessage(content=full_system_instruction),
+            HumanMessage(content=user_message),
+        ]
+        response = await llm.ainvoke(messages)
 
-        logger.info("Gemini Pro successfully formulated legal analysis argument.")
-        return {"final_answer": response.text.strip()}
+        logger.info("Chat model successfully formulated legal analysis argument.")
+        return {"final_answer": str(response.content).strip()}
 
     except Exception as e:
         logger.error(

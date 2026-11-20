@@ -27,6 +27,8 @@ backend = [
     "loguru~=0.7.3",
     "pymupdf4llm~=1.28.2",
     "pdfplumber~=0.11.10",
+    "langchain~=1.4.0",
+    "langchain-google-genai~=4.4.0",
 ]
 frontend = [
     "chainlit~=2.12.0",
@@ -38,7 +40,6 @@ dev = [
     "pytest~=9.1.1",
     "pytest-asyncio~=1.4.0",
     "ragas~=0.4.3",
-    "langchain-google-genai~=4.4.0",
     "ruff~=0.17.4",
     "mypy~=2.3.1",
     "pre-commit~=4.6.2",
@@ -62,7 +63,7 @@ omit = [
 ]
 
 [tool.coverage.report]
-fail_under = 70
+fail_under = 80
 show_missing = true
 skip_covered = false
 

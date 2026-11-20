@@ -2,14 +2,12 @@
 
 import asyncio
 
-from google import genai
+from google.genai import Client
 
 from src.config import settings
 from src.logger import logger
 
-ai_client: genai.Client = genai.Client(
-    api_key=settings.GEMINI_API_KEY.get_secret_value()
-)
+ai_client: Client = Client(api_key=settings.GEMINI_API_KEY.get_secret_value())
 
 
 async def embed_single_text(text: str) -> list[float]:
