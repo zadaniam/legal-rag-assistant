@@ -1,7 +1,7 @@
 [project]
 name = "legal-rag-assistant"
 version = "0.1.0"
-description = "HR Compliance Chatbot Assistant using LangGraph and Qdrant"
+description = "Agentic Indonesian labor law & HR compliance chatbot assistant"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 license = "BUSL-1.1"
@@ -44,6 +44,7 @@ dev = [
     "pre-commit~=4.6.2",
     "pytest-mock~=3.17.0",
     "pytest-cov~=7.1.0",
+    "langgraph-cli[inmem]~=0.4.43",
 ]
 
 [tool.pytest.ini_options]
@@ -63,7 +64,7 @@ omit = [
 [tool.coverage.report]
 fail_under = 70
 show_missing = true
-skip_covered = true
+skip_covered = false
 
 [tool.ruff]
 line-length = 88
