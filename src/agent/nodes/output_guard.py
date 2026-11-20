@@ -2,27 +2,25 @@
 
 Validates AI-generated legal answers for hallucination using a hybrid
 approach: deterministic regex pasal citation check followed by semantic
-evaluation with Gemini.
+evaluation with a structured LLM auditor.
 """
 
-import json
 import re
+from typing import Any, cast
 
-from google import genai
-from google.genai import types
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
-from langsmith.wrappers import wrap_gemini
 from pydantic import BaseModel, Field
 
 from src.agent.configuration import AgentConfiguration
 from src.agent.prompts import OUTPUT_GUARD_SYSTEM_PROMPT
 from src.agent.state import LegalAgentState
-from src.config import settings
 from src.logger import logger
+from src.utils.llm import get_chat_model
 
 
 class OutputAuditorSchema(BaseModel):
-    """Schema for Gemini output auditor evaluation result."""
+    """Schema for LLM output auditor evaluation result."""
 
     analisis_perbandingan: str = Field(
         description="Objective claim-by-claim evaluation analysis."
@@ -30,15 +28,10 @@ class OutputAuditorSchema(BaseModel):
     kesimpulan: str = Field(description="Only contains string 'AMAN' or 'HALUSINASI'")
 
 
-ai_client = wrap_gemini(
-    genai.Client(api_key=settings.GEMINI_API_KEY.get_secret_value())
-)
-
-
 async def output_guard_node(
     state: LegalAgentState, config: RunnableConfig | None = None
-) -> dict:
-    """Validate AI answer for hallucination using regex and Gemini."""
+) -> dict[str, Any]:
+    """Validate AI answer for hallucination using regex and structured LLM audit."""
     filters = state.get("search_filters", {})
     if filters.get("is_chitchat"):
         return {"system_status": "clear"}
@@ -89,21 +82,20 @@ async def output_guard_node(
     )
 
     try:
-        response = await ai_client.aio.models.generate_content(
+        llm = get_chat_model(
             model=agent_cfg.auditor_model,
-            contents=user_query,
-            config=types.GenerateContentConfig(
-                system_instruction=OUTPUT_GUARD_SYSTEM_PROMPT,
-                temperature=agent_cfg.auditor_temperature,
-                response_mime_type="application/json",
-                response_schema=OutputAuditorSchema,
-            ),
+            temperature=agent_cfg.auditor_temperature,
         )
+        structured_llm = llm.with_structured_output(OutputAuditorSchema)
 
-        result_json = json.loads(response.text)
-        evaluation_result = result_json.get("kesimpulan", "AMAN").strip().upper()
+        messages = [
+            SystemMessage(content=OUTPUT_GUARD_SYSTEM_PROMPT),
+            HumanMessage(content=user_query),
+        ]
+        result = cast(OutputAuditorSchema, await structured_llm.ainvoke(messages))
+        evaluation_result = result.kesimpulan.strip().upper()
 
-        logger.info(f"Auditor analysis: {result_json.get('analisis_perbandingan')}")
+        logger.info(f"Auditor analysis: {result.analisis_perbandingan}")
         logger.info(f"Output Guard semantic evaluation result: {evaluation_result}")
 
         if evaluation_result == "HALUSINASI":

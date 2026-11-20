@@ -10,10 +10,10 @@ from langchain_core.runnables import RunnableConfig
 class AgentConfiguration:
     """Configurable runtime parameters for all nodes in the legal agent graph."""
 
-    guard_model: str = "gemini-3.5-flash-lite"
-    router_model: str = "gemini-3.5-flash-lite"
-    reasoner_model: str = "gemini-3.5-flash-lite"
-    auditor_model: str = "gemini-3.5-flash-lite"
+    guard_model: str = "google_genai:gemini-3.5-flash-lite"
+    router_model: str = "google_genai:gemini-3.5-flash-lite"
+    reasoner_model: str = "google_genai:gemini-3.5-flash-lite"
+    auditor_model: str = "google_genai:gemini-3.5-flash-lite"
 
     guard_temperature: float = 0.0
     router_temperature: float = 0.0

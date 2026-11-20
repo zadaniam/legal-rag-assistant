@@ -10,6 +10,7 @@ MAKEFLAGS += --no-print-directory
 APP_ENV      ?= development
 APP_PORT     ?= 7000
 UI_PORT      ?= 8000
+STUDIO_PORT  ?= 2024
 UV           ?= uv
 COMPOSE      ?= docker compose
 COMPOSE_FILE ?= docker-compose.dev.yml
@@ -17,7 +18,7 @@ COMPOSE_FILE ?= docker-compose.dev.yml
 PYTHON := $(UV) run python
 
 .PHONY: help sync up down logs init-qdrant init-postgres data-preprocess data-ingest \
-        run-app run-ui lint format types pre-commit test test-unit test-nodes \
+        run-app run-ui run-studio lint format types pre-commit test test-unit test-nodes \
         test-integration test-e2e-api sync-ci pre-commit-ci init-qdrant-prod \
         data-ingest-prod clean
 
@@ -70,6 +71,9 @@ run-app: ## Run the FastAPI backend (http://localhost:7000)
 run-ui: ## Run the Chainlit UI (http://localhost:8000)
 	APP_ENV=$(APP_ENV) CHAINLIT_APP_ROOT=ui $(UV) run python -m chainlit run ui/app_chainlit.py --port $(UI_PORT)
 
+run-studio: ## Run the LangGraph Studio dev server (http://localhost:2024)
+	APP_ENV=$(APP_ENV) $(UV) run langgraph dev --port $(STUDIO_PORT)
+
 # ==============================================================================
 # 5. Code Quality & Testing (Local)
 # ==============================================================================
@@ -120,4 +124,5 @@ data-ingest-prod: ## Shortcut: run `data-ingest` with APP_ENV=production
 
 clean: ## Remove Python caches
 	find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
-	rm -rf .pytest_cache .ruff_cache .mypy_cache ui/.chainlit ui/.files htmlcov/ .coverage
+	rm -rf .pytest_cache .ruff_cache .mypy_cache ui/.chainlit ui/.files htmlcov/
+	rm -rf htmlcov/ .coverage coverage.xml .langgraph_api

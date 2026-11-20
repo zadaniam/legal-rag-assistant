@@ -1,75 +1,94 @@
-"""Integration test for the legal RAG LangGraph workflow."""
+"""Integration tests for the compiled legal RAG LangGraph workflow with Postgres."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from langchain_core.messages import HumanMessage
-from langgraph.checkpoint.memory import InMemorySaver
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.runnables import RunnableConfig
+from pydantic import BaseModel
 
-from src.agent.graph import builder
-from src.agent.state import LegalAgentState
+from src.agent.graph import compile_legal_graph
+from src.agent.nodes.context import RouterOutputSchema, SearchQueryPayload
+from src.agent.nodes.input_guard import InputGuardOutputSchema
+from src.agent.nodes.output_guard import OutputAuditorSchema
+from src.utils.llm import get_chat_model
 
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 
-async def mock_input_guard_node(_state: LegalAgentState):
-    return {"system_status": "clear"}
+def _build_mock_chat_model(
+    *,
+    guard_output: InputGuardOutputSchema,
+    router_output: RouterOutputSchema | None = None,
+    reasoner_text: str = "",
+    auditor_output: OutputAuditorSchema | None = None,
+) -> MagicMock:
+    """Create a mock BaseChatModel dispatching structured outputs by schema."""
+    mock_llm = MagicMock()
+    mock_llm.ainvoke = AsyncMock(return_value=AIMessage(content=reasoner_text))
+
+    def _with_structured_output(schema: type[BaseModel]) -> MagicMock:
+        structured = MagicMock()
+        if schema is InputGuardOutputSchema:
+            structured.ainvoke = AsyncMock(return_value=guard_output)
+        elif schema is RouterOutputSchema and router_output is not None:
+            structured.ainvoke = AsyncMock(return_value=router_output)
+        elif schema is OutputAuditorSchema and auditor_output is not None:
+            structured.ainvoke = AsyncMock(return_value=auditor_output)
+        else:
+            raise AssertionError(f"Unexpected schema requested: {schema}")
+        return structured
+
+    mock_llm.with_structured_output.side_effect = _with_structured_output
+    return mock_llm
 
 
-async def mock_context_manager_node(_state: LegalAgentState):
-    return {"search_filters": {"is_chitchat": False}}
+@pytest.fixture(autouse=True)
+def clear_llm_cache() -> None:
+    """Ensure cached chat models do not leak across integration scenarios."""
+    get_chat_model.cache_clear()
 
 
-async def mock_legal_search_node(_state: LegalAgentState):
-    return {
-        "search_payloads": [{"query": "pesangon 1 tahun"}],
-        "retrieved_documents": [
-            {
-                "pasal": "Pasal 156",
-                "uu_id": "uu_ketenagakerjaan_2003",
-                "content": "1 bulan upah",
-            }
-        ],
-    }
-
-
-async def mock_legal_reasoner_node(_state: LegalAgentState):
-    return {
-        "final_answer": (
-            "Menurut Pasal 156 [UU Ketenagakerjaan], masa kerja kurang dari 1 "
-            "tahun mendapat 1 bulan upah."
+@patch("src.utils.llm.init_chat_model")
+async def test_legal_graph_integration_full_rag_with_postgres(
+    mock_init_chat_model: MagicMock,
+) -> None:
+    """Verify full RAG workflow with real Postgres checkpointer and real Qdrant."""
+    mock_init_chat_model.return_value = _build_mock_chat_model(
+        guard_output=InputGuardOutputSchema(is_safe=True, reason=""),
+        router_output=RouterOutputSchema(
+            is_chitchat=False,
+            chitchat_response=None,
+            search_payloads=[
+                SearchQueryPayload(
+                    query="hak pekerja perempuan melahirkan cuti",
+                    target_uu="uu_ketenagakerjaan_2003",
+                )
+            ],
         ),
+        reasoner_text=(
+            "Berdasarkan ketentuan peraturan ketenagakerjaan yang berlaku, "
+            "pekerja perempuan berhak memperoleh istirahat melahirkan."
+        ),
+        auditor_output=OutputAuditorSchema(
+            analisis_perbandingan="Substansi sesuai dengan dokumen rujukan.",
+            kesimpulan="AMAN",
+        ),
+    )
+
+    graph = compile_legal_graph()
+    config: RunnableConfig = {
+        "configurable": {"thread_id": "test_integration_pg_rag_001"}
     }
 
-
-async def mock_output_guard_node(_state: LegalAgentState):
-    return _state
-
-
-@patch("src.agent.graph.AsyncPostgresSaver")
-async def test_legal_graph_integration_flow(mock_checkpointer):
-    test_memory = InMemorySaver()
-
-    builder.nodes["input_guard"].runnable.afunc = mock_input_guard_node
-    builder.nodes["context_manager"].runnable.afunc = mock_context_manager_node
-    builder.nodes["legal_search"].runnable.afunc = mock_legal_search_node
-    builder.nodes["legal_reasoner"].runnable.afunc = mock_legal_reasoner_node
-    builder.nodes["output_guard"].runnable.afunc = mock_output_guard_node
-
-    integration_graph = builder.compile(checkpointer=test_memory)
-
-    input_state = {
-        "messages": [HumanMessage(content="Pertanyaan Hukum Ketenagakerjaan")]
-    }
-    config = {"configurable": {"thread_id": "test_integration_thread_001"}}
-
-    result = await integration_graph.ainvoke(input_state, config=config)
+    result = await graph.ainvoke(
+        {"messages": [HumanMessage(content="Bagaimana hak cuti melahirkan?")]},
+        config=config,
+    )
 
     assert result["system_status"] == "clear"
-    assert result["search_filters"]["is_chitchat"] is False
-    assert len(result["search_payloads"]) == 1
-    assert len(result["retrieved_documents"]) == 1
-    assert "pasal" in result["retrieved_documents"][0]
+    assert len(result["retrieved_documents"]) > 0
+    assert len(result["final_answer"]) > 0
 
-    assert "[UU" in result["final_answer"]
-    assert "1 bulan upah" in result["final_answer"]
+    saved_state = await graph.aget_state(config)
+    assert saved_state.values["final_answer"] == result["final_answer"]

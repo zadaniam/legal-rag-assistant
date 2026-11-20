@@ -1,4 +1,5 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -6,48 +7,53 @@ from src.agent.nodes.search import legal_search_node
 from src.agent.state import LegalAgentState
 
 
+class FakeLegalRetriever:
+    """In-memory test double implementing LegalRetriever protocol."""
+
+    def __init__(self, results: list[dict[str, Any]]) -> None:
+        self.results = results
+        self.calls: list[dict[str, Any]] = []
+
+    async def hybrid_search(
+        self,
+        search_payloads: list[dict[str, Any]],
+        prefetch_limit: int,
+        fusion_limit: int,
+    ) -> list[dict[str, Any]]:
+        self.calls.append(
+            {
+                "search_payloads": search_payloads,
+                "prefetch_limit": prefetch_limit,
+                "fusion_limit": fusion_limit,
+            }
+        )
+        return self.results
+
+
 @pytest.mark.anyio
-@patch("src.agent.nodes.search.embed_text", new_callable=AsyncMock)
-async def test_legal_search_node_multi_query_parallel_success(mock_embed_text, mocker):
-    mock_point_pesangon = MagicMock()
-    mock_point_pesangon.id = 101
-    mock_point_pesangon.score = 0.9542
-    mock_point_pesangon.payload = {
-        "uu_id": "uu_ketenagakerjaan_2003",
-        "pasal": "Pasal 156",
-        "text_child": "Komponen pesangon...",
-        "text_parent": "Aturan Uang Pesangon",
-        "status_keberlakuan": "berlaku",
-        "parent_id": "parent-uu-ketenagakerjaan-156",
-    }
-    mock_resp_1 = MagicMock()
-    mock_resp_1.points = [mock_point_pesangon]
-
-    mock_point_bpjs = MagicMock()
-    mock_point_bpjs.id = 202
-    mock_point_bpjs.score = 0.8819
-    mock_point_bpjs.payload = {
-        "uu_id": "uu_bpjs_2011",
-        "pasal": "Pasal 37",
-        "text_child": "Klaim JHT...",
-        "text_parent": "Aturan Klaim JHT",
-        "status_keberlakuan": "berlaku",
-        "parent_id": "parent-uu-bpjs-37",
-    }
-    mock_resp_2 = MagicMock()
-    mock_resp_2.points = [mock_point_bpjs]
-
-    mock_query_points = mocker.patch(
-        "src.agent.nodes.search.async_qdrant_client.query_points",
-        new_callable=AsyncMock,
-    )
-    mock_query_points.side_effect = [mock_resp_1, mock_resp_2]
-
-    mock_embed_text.return_value = [[0.1] * 3072, [0.2] * 3072]
+async def test_legal_search_node_delegates_to_injected_retriever() -> None:
+    expected_docs = [
+        {
+            "uu_id": "uu_ketenagakerjaan_2003",
+            "pasal": "Pasal 156",
+            "text_child": "Komponen pesangon...",
+            "text_parent": "Aturan Uang Pesangon",
+            "status_keberlakuan": "berlaku",
+            "parent_id": "parent-uu-ketenagakerjaan-156",
+        },
+        {
+            "uu_id": "uu_bpjs_2011",
+            "pasal": "Pasal 37",
+            "text_child": "Klaim JHT...",
+            "text_parent": "Aturan Klaim JHT",
+            "status_keberlakuan": "berlaku",
+            "parent_id": "parent-uu-bpjs-37",
+        },
+    ]
+    fake_retriever = FakeLegalRetriever(results=expected_docs)
 
     mock_state: LegalAgentState = {
         "messages": [],
-        "summary_memory": "",
         "search_payloads": [
             {
                 "query": "aturan uang pesangon",
@@ -58,68 +64,43 @@ async def test_legal_search_node_multi_query_parallel_success(mock_embed_text, m
                 "target_uu": "Semua",
             },
         ],
+        "search_filters": {},
+        "retrieved_documents": [],
+        "system_status": "clear",
+        "final_answer": "",
+    }
+    config = {
+        "configurable": {
+            "retriever": fake_retriever,
+            "qdrant_prefetch_limit": 15,
+            "qdrant_fusion_limit": 5,
+        }
+    }
+
+    node_output = await legal_search_node(mock_state, config=config)
+
+    assert node_output == {"retrieved_documents": expected_docs}
+    assert len(fake_retriever.calls) == 1
+    assert fake_retriever.calls[0]["prefetch_limit"] == 15
+    assert fake_retriever.calls[0]["fusion_limit"] == 5
+    assert len(fake_retriever.calls[0]["search_payloads"]) == 2
+
+
+@pytest.mark.anyio
+async def test_legal_search_node_skips_when_payloads_empty() -> None:
+    mock_retriever = AsyncMock()
+    mock_state: LegalAgentState = {
+        "messages": [],
+        "search_payloads": [],
+        "search_filters": {},
         "retrieved_documents": [],
         "system_status": "clear",
         "final_answer": "",
     }
 
-    node_output = await legal_search_node(mock_state)
-
-    assert "retrieved_documents" in node_output
-    assert len(node_output["retrieved_documents"]) == 2
-    assert node_output["retrieved_documents"][0]["pasal"] == "Pasal 156"
-    assert node_output["retrieved_documents"][1]["pasal"] == "Pasal 37"
-    assert mock_query_points.call_count == 2
-
-
-@pytest.mark.anyio
-@patch("src.agent.nodes.search.embed_text", new_callable=AsyncMock)
-async def test_legal_search_node_deduplication_handling(mock_embed_text, mocker):
-    mock_point_1 = MagicMock()
-    mock_point_1.id = 501
-    mock_point_1.score = 0.90
-    mock_point_1.payload = {
-        "parent_id": "parent-uu-duplikat",
-        "pasal": "Pasal 90",
-        "status_keberlakuan": "berlaku",
-    }
-    mock_resp_1 = MagicMock()
-    mock_resp_1.points = [mock_point_1]
-
-    mock_point_2 = MagicMock()
-    mock_point_2.id = 502
-    mock_point_2.score = 0.85
-    mock_point_2.payload = {
-        "parent_id": "parent-uu-duplikat",
-        "pasal": "Pasal 90",
-        "status_keberlakuan": "berlaku",
-    }
-    mock_resp_2 = MagicMock()
-    mock_resp_2.points = [mock_point_2]
-
-    mock_query_points = mocker.patch(
-        "src.agent.nodes.search.async_qdrant_client.query_points",
-        new_callable=AsyncMock,
+    node_output = await legal_search_node(
+        mock_state, config={"configurable": {"retriever": mock_retriever}}
     )
-    mock_query_points.side_effect = [mock_resp_1, mock_resp_2]
-    mock_embed_text.return_value = [[0.1] * 3072, [0.1] * 3072]
 
-    mock_state: LegalAgentState = {
-        "messages": [],
-        "search_payloads": [
-            {
-                "query": "upah minimum",
-                "target_uu": "uu_ketenagakerjaan_2003",
-            },
-            {
-                "query": "gaji standar",
-                "target_uu": "Semua",
-            },
-        ],
-        "retrieved_documents": [],
-    }
-
-    node_output = await legal_search_node(mock_state)
-
-    assert len(node_output["retrieved_documents"]) == 1
-    assert mock_query_points.call_count == 2
+    assert node_output == {"retrieved_documents": []}
+    mock_retriever.hybrid_search.assert_not_called()

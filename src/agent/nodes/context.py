@@ -1,23 +1,20 @@
 """Context manager node for the legal RAG agent.
 
 Routes user input to either chitchat response or legal search based on
-semantic classification using Gemini.
+semantic classification using a provider-agnostic chat model.
 """
 
-import json
+from typing import Any, cast
 
-from google import genai
-from google.genai import types
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
-from langsmith.wrappers import wrap_gemini
 from pydantic import BaseModel, Field
 
 from src.agent.configuration import AgentConfiguration
 from src.agent.prompts import CONTEXT_MANAGER_SYSTEM_PROMPT
 from src.agent.state import LegalAgentState
-from src.config import settings
 from src.logger import logger
+from src.utils.llm import get_chat_model
 
 
 class SearchQueryPayload(BaseModel):
@@ -35,7 +32,7 @@ class SearchQueryPayload(BaseModel):
 
 
 class RouterOutputSchema(BaseModel):
-    """Schema for Gemini router output classifying user input."""
+    """Schema for LLM router output classifying user input."""
 
     is_chitchat: bool = Field(
         description=(
@@ -55,15 +52,10 @@ class RouterOutputSchema(BaseModel):
     )
 
 
-ai_client = wrap_gemini(
-    genai.Client(api_key=settings.GEMINI_API_KEY.get_secret_value())
-)
-
-
 async def context_manager_node(
     state: LegalAgentState, config: RunnableConfig | None = None
-) -> dict:
-    """Classify user input and extract search payloads using Gemini router."""
+) -> dict[str, Any]:
+    """Classify user input and extract search payloads using structured LLM router."""
     all_messages = state.get("messages", [])
     agent_cfg = AgentConfiguration.from_runnable_config(config)
 
@@ -79,7 +71,7 @@ async def context_manager_node(
         elif isinstance(msg, AIMessage):
             formatted_recent_history += f"Asisten: {msg.content}\n"
 
-    user_message = all_messages[-1].content
+    user_message = str(all_messages[-1].content)
 
     full_system_instruction = CONTEXT_MANAGER_SYSTEM_PROMPT
     if formatted_recent_history:
@@ -89,26 +81,26 @@ async def context_manager_node(
         )
 
     try:
-        response = await ai_client.aio.models.generate_content(
+        llm = get_chat_model(
             model=agent_cfg.router_model,
-            contents=user_message,
-            config=types.GenerateContentConfig(
-                system_instruction=full_system_instruction,
-                temperature=agent_cfg.router_temperature,
-                response_mime_type="application/json",
-                response_schema=RouterOutputSchema,
-            ),
+            temperature=agent_cfg.router_temperature,
         )
+        structured_llm = llm.with_structured_output(RouterOutputSchema)
 
-        result_json = json.loads(response.text)
+        messages = [
+            SystemMessage(content=full_system_instruction),
+            HumanMessage(content=user_message),
+        ]
+        result = cast(RouterOutputSchema, await structured_llm.ainvoke(messages))
+        result_dict = result.model_dump()
+
         logger.info(
-            "Gemini Router processed route successfully. "
-            f"is_chitchat={result_json.get('is_chitchat')}"
+            f"LLM Router processed route successfully. is_chitchat={result.is_chitchat}"
         )
 
         return {
-            "search_payloads": result_json.get("search_payloads", []),
-            "search_filters": result_json,
+            "search_payloads": result_dict.get("search_payloads", []),
+            "search_filters": result_dict,
         }
 
     except Exception as e:
