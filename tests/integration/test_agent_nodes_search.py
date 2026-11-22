@@ -3,18 +3,17 @@
 import pytest
 
 from src.agent.nodes.search import legal_search_node
-from src.database.connection import async_qdrant_client
 
 pytestmark = pytest.mark.asyncio
 
 
 @pytest.fixture(autouse=True)
-async def verify_qdrant_alive():
+async def verify_qdrant_alive(qdrant_cli):
     """Fixture otomatis untuk memastikan server Qdrant aktif sebelum pengujian berjalan.
     Hanya melakukan pengecekan kesehatan (health check) tanpa menutup koneksi client
     secara global agar tidak merusak status pool HTTP pada pengujian berikutnya.
     """
-    collections_response = await async_qdrant_client.get_collections()
+    collections_response = await qdrant_cli.get_collections()
     assert collections_response is not None, (
         "Server Qdrant lokal harus merespons aktif."
     )

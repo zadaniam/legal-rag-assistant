@@ -18,3 +18,15 @@ async def test_qdrant_connection_ping(qdrant_cli):
 
     assert response is not None
     assert hasattr(response, "collections")
+
+
+@pytest.mark.asyncio
+async def test_database_health_check_integration(db_lifespan):
+    from src.database.connection import check_database_health
+
+    health = await check_database_health()
+
+    assert health == {
+        "postgres": {"status": "up"},
+        "qdrant": {"status": "up"},
+    }

@@ -47,13 +47,10 @@ async def test_prepare_and_upload_to_qdrant_success(mocker):
 
     mocker.patch("src.data_pipeline.ingestion.qdrant_service.ai_client", mock_ai_client)
 
-    mock_upsert = AsyncMock()
-    mocker.patch(
-        "src.data_pipeline.ingestion.qdrant_service.async_qdrant_client.upsert",
-        mock_upsert,
-    )
+    mock_qdrant = MagicMock()
+    mock_qdrant.upsert = AsyncMock()
 
-    await prepare_and_upload_to_qdrant(mock_prepared_points)
+    await prepare_and_upload_to_qdrant(mock_prepared_points, client=mock_qdrant)
 
     mock_embed_content.assert_called_once_with(
         model=EmbeddingSpec.DENSE_MODEL,
@@ -61,8 +58,8 @@ async def test_prepare_and_upload_to_qdrant_success(mocker):
         config=mocker.ANY,
     )
 
-    mock_upsert.assert_called_once()
-    called_kwargs = mock_upsert.call_args.kwargs
+    mock_qdrant.upsert.assert_called_once()
+    called_kwargs = mock_qdrant.upsert.call_args.kwargs
     assert "collection_name" in called_kwargs
     assert "points" in called_kwargs
 

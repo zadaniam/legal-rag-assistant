@@ -17,7 +17,30 @@ async def test_api_health_check_success():
         response = await ac.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "healthy", "environment": "development"}
+    assert response.json() == {
+        "status": "healthy",
+        "environment": "development",
+        "dependencies": {
+            "postgres": {"status": "up"},
+            "qdrant": {"status": "up"},
+        },
+    }
+
+
+@pytest.mark.asyncio
+@patch("src.main.check_database_health", new_callable=AsyncMock)
+async def test_api_health_check_degraded(mock_health):
+    mock_health.return_value = {
+        "postgres": {"status": "up"},
+        "qdrant": {"status": "down", "error": "Connection refused"},
+    }
+
+    transport = httpx.ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        response = await ac.get("/health")
+
+    assert response.status_code == 503
+    assert response.json()["status"] == "degraded"
 
 
 @pytest.mark.asyncio
