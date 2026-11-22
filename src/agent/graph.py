@@ -14,7 +14,7 @@ from src.agent.nodes.output_guard import output_guard_node
 from src.agent.nodes.reasoner import legal_reasoner_node
 from src.agent.nodes.search import legal_search_node
 from src.agent.state import LegalAgentState
-from src.database.connection import async_postgres_pool
+from src.database.connection import get_postgres_pool
 from src.logger import logger
 
 builder = StateGraph(LegalAgentState, context_schema=AgentConfiguration)
@@ -63,12 +63,7 @@ def compile_legal_graph() -> LegalCompiledGraph:
 
     logger.info("Compiling LangGraph blueprint with AsyncPostgresSaver...")
 
-    if async_postgres_pool is None:
-        raise RuntimeError(
-            "Postgres pool is not initialized. Ensure connection is active."
-        )
-
-    postgres_pool = cast(Any, async_postgres_pool)
+    postgres_pool = cast(Any, get_postgres_pool())
     memory_checkpointer = AsyncPostgresSaver(postgres_pool)
 
     legal_rag_graph = builder.compile(checkpointer=memory_checkpointer)

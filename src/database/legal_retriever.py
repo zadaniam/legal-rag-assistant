@@ -7,7 +7,7 @@ from qdrant_client import AsyncQdrantClient, models
 from qdrant_client.models import Condition
 
 from src.config import settings
-from src.database.connection import async_qdrant_client
+from src.database.connection import get_qdrant_client
 from src.database.vector_schema import (
     EmbeddingSpec,
     LegalChunkPayload,
@@ -187,12 +187,7 @@ class QdrantLegalRetriever:
 
 def get_default_legal_retriever() -> QdrantLegalRetriever:
     """Construct the default Qdrant retriever using the active global client."""
-    if async_qdrant_client is None:
-        raise RuntimeError(
-            "Database connection error: 'async_qdrant_client' is not initialized. "
-            "Ensure database pool is active before running agent search node."
-        )
     return QdrantLegalRetriever(
-        client=async_qdrant_client,
+        client=get_qdrant_client(),
         collection_name=settings.QDRANT_COLLECTION_NAME,
     )

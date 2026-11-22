@@ -8,7 +8,7 @@ from src.config import pipeline_settings, settings
 from src.data_pipeline.ingestion.parser_rag import parse_markdown_to_object
 from src.data_pipeline.ingestion.qdrant_service import prepare_and_upload_to_qdrant
 from src.data_pipeline.ingestion.splitter import split_laws_into_hierarchical_points
-from src.database.connection import async_qdrant_client
+from src.database.connection import close_database_connections, init_qdrant_client
 
 
 async def run_ingest() -> None:
@@ -20,6 +20,8 @@ async def run_ingest() -> None:
     )
 
     try:
+        await init_qdrant_client()
+
         for doc in files_to_ingest:
             target_file = doc["path"]
             target_id = doc["uu_id"]
@@ -49,11 +51,7 @@ async def run_ingest() -> None:
         raise e
 
     finally:
-        if async_qdrant_client is not None:
-            await async_qdrant_client.close()
-            print("Async Qdrant Client connection closed cleanly.")
-        else:
-            print("Async Qdrant client was already uninitialized or None.")
+        await close_database_connections()
 
 
 if __name__ == "__main__":

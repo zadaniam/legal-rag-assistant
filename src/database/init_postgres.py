@@ -7,9 +7,9 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg_pool import AsyncConnectionPool
 
 from src.database.connection import (
-    async_postgres_pool,
     close_database_connections,
-    init_database_connections,
+    get_postgres_pool,
+    init_postgres_pool,
 )
 from src.logger import logger
 
@@ -18,13 +18,7 @@ async def init_langgraph_tables() -> None:
     """Create LangGraph Checkpointer internal tables asynchronously."""
     logger.info("Checking async LangGraph Checkpointer internal tables...")
     try:
-        if async_postgres_pool is None:
-            msg = "PostgreSQL pool is not configured"
-            raise RuntimeError(msg)
-        typed_pool = cast(
-            AsyncConnectionPool[Any],
-            async_postgres_pool,
-        )
+        typed_pool = cast(AsyncConnectionPool[Any], get_postgres_pool())
         checkpointer = AsyncPostgresSaver(typed_pool)
         await checkpointer.setup()
         logger.info("LangGraph Checkpointer tables verified (async).")
@@ -63,10 +57,8 @@ async def init_postgresql_tables() -> None:
     );
     """
 
-    if async_postgres_pool is None:
-        msg = "PostgreSQL pool is not configured"
-        raise RuntimeError(msg)
-    async with async_postgres_pool.connection() as conn, conn.cursor() as cur:
+    pool = get_postgres_pool()
+    async with pool.connection() as conn, conn.cursor() as cur:
         await cur.execute(create_sessions_table)
         await cur.execute(create_logs_table)
         logger.info("Tables 'chat_sessions' and 'legal_audit_logs' verified.")
@@ -76,7 +68,7 @@ async def run_postgres_initialization() -> None:
     """Run full PostgreSQL initialization sequence."""
     try:
         logger.info("Starting PostgreSQL initialization...")
-        await init_database_connections()
+        await init_postgres_pool()
 
         await init_postgresql_tables()
         await init_langgraph_tables()
