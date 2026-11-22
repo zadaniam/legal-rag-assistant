@@ -3,8 +3,8 @@
 import pytest_asyncio
 
 from src.database.connection import (
-    async_postgres_pool,
     close_database_connections,
+    get_postgres_pool,
     init_database_connections,
 )
 
@@ -15,7 +15,8 @@ async def db_lifespan_e2e():
     await init_database_connections()
     yield
 
-    async with async_postgres_pool.connection() as conn:
+    pool = get_postgres_pool()
+    async with pool.connection() as conn:
         await conn.commit()
 
     await close_database_connections()

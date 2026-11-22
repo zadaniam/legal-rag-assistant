@@ -19,19 +19,35 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: SecretStr = Field(...)
 
     QDRANT_URL: str = Field(default="http://localhost:6333")
+    QDRANT_GRPC_PORT: int = Field(default=6334, gt=0)
     QDRANT_COLLECTION_NAME: str = Field(default="legal_knowledge_base_dev")
     QDRANT_API_KEY: SecretStr | None = Field(default=None)
+    QDRANT_TIMEOUT: int = Field(default=10, gt=0)
+    QDRANT_PREFER_GRPC: bool = Field(default=False)
 
     POSTGRES_URL: str = Field(
         default=(
-            "postgresql+psycopg://legal_admin:super_secret_password"
+            "postgresql://legal_admin:super_secret_password"
             "@localhost:5432/legal_assistant_db"
         )
     )
+    DB_POOL_MIN_SIZE: int = Field(default=2, ge=1)
+    DB_POOL_MAX_SIZE: int = Field(default=10, ge=1)
+    DB_POOL_TIMEOUT: float = Field(default=10.0, gt=0)
+    DB_POOL_MAX_LIFETIME: float = Field(default=3600.0, gt=0)
 
     LANGSMITH_TRACING: str = Field(default="true")
     LANGSMITH_API_KEY: SecretStr = Field(...)
     LANGSMITH_PROJECT: str = Field(default="asisten-legal-rag-dev")
+
+    @property
+    def psycopg_postgres_url(self) -> str:
+        """Normalize SQLAlchemy-style Postgres URLs into libpq-compatible URI."""
+        if self.POSTGRES_URL.startswith("postgresql+psycopg://"):
+            return self.POSTGRES_URL.replace(
+                "postgresql+psycopg://", "postgresql://", 1
+            )
+        return self.POSTGRES_URL
 
     model_config = SettingsConfigDict(
         env_file=f".env.{app_env}", env_file_encoding="utf-8", extra="ignore"

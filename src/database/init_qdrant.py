@@ -3,7 +3,11 @@
 import asyncio
 
 from src.config import settings
-from src.database.connection import async_qdrant_client
+from src.database.connection import (
+    close_database_connections,
+    get_qdrant_client,
+    init_qdrant_client,
+)
 from src.database.vector_schema import QdrantCollectionSchema
 from src.logger import logger
 
@@ -16,11 +20,10 @@ async def init_qdrant_collections() -> None:
         f"({settings.ENVIRONMENT.upper()})..."
     )
 
-    if async_qdrant_client is None:
-        msg = "Qdrant client is not configured"
-        raise RuntimeError(msg)
-    collections_response = await async_qdrant_client.get_collections()
+    client = get_qdrant_client()
+    collections_response = await client.get_collections()
     existing_collections = [c.name for c in collections_response.collections]
+
     if collection_name in existing_collections:
         if settings.ENVIRONMENT.lower() in {"dev", "development", "local"}:
             logger.warning(
@@ -28,9 +31,7 @@ async def init_qdrant_collections() -> None:
                 "Deleting for hybrid search migration..."
             )
             try:
-                await async_qdrant_client.delete_collection(
-                    collection_name=collection_name
-                )
+                await client.delete_collection(collection_name=collection_name)
                 logger.info(f"Legacy collection '{collection_name}' deleted.")
             except Exception as e:
                 logger.error(f"Failed to delete legacy collection: {e}")
@@ -52,14 +53,14 @@ async def init_qdrant_collections() -> None:
         "architecture (dense + sparse/BM25)..."
     )
 
-    await async_qdrant_client.create_collection(
+    await client.create_collection(
         collection_name=collection_name,
         vectors_config=QdrantCollectionSchema.vectors_config(),
         sparse_vectors_config=QdrantCollectionSchema.sparse_vectors_config(),
     )
 
     for field_name, field_schema in QdrantCollectionSchema.payload_indexes():
-        await async_qdrant_client.create_payload_index(
+        await client.create_payload_index(
             collection_name=collection_name,
             field_name=field_name,
             field_schema=field_schema,
@@ -74,7 +75,7 @@ async def run_qdrant_initialization() -> None:
         logger.info(
             f"Starting Qdrant hybrid initialization [{settings.ENVIRONMENT.upper()}]..."
         )
-
+        await init_qdrant_client()
         await init_qdrant_collections()
 
         logger.info("Qdrant hybrid configured successfully.")
@@ -82,10 +83,7 @@ async def run_qdrant_initialization() -> None:
         logger.error(f"Qdrant initialization failed: {e}")
         raise
     finally:
-        if async_qdrant_client is not None:
-            logger.info("Closing async Qdrant client...")
-            await async_qdrant_client.close()
-            logger.info("Async Qdrant client closed cleanly.")
+        await close_database_connections()
 
 
 if __name__ == "__main__":

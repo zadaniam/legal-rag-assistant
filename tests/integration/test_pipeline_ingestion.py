@@ -9,16 +9,6 @@ from src.config import settings
 from src.data_pipeline.ingestion.parser_rag import parse_markdown_to_object
 from src.data_pipeline.ingestion.qdrant_service import prepare_and_upload_to_qdrant
 from src.data_pipeline.ingestion.splitter import split_laws_into_hierarchical_points
-from src.database.connection import async_qdrant_client
-
-
-@pytest.fixture(scope="module")
-def event_loop():
-    """Ensures the test uses the same event loop as the global asyncio loop."""
-    policy = asyncio.get_event_loop_policy()
-    loop = policy.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture
@@ -39,8 +29,9 @@ def integration_mock_markdown(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_ingestion_pipeline_success(integration_mock_markdown):
-    # Skip in production to avoid touching real cloud data
+async def test_end_to_end_ingestion_pipeline_success(
+    integration_mock_markdown, qdrant_cli
+):
     if settings.ENVIRONMENT == "production":
         pytest.skip(
             "Skipping integration test: PRODUCTION environment detected. "
@@ -50,9 +41,8 @@ async def test_end_to_end_ingestion_pipeline_success(integration_mock_markdown):
     target_uu_id = "uu_integration_test_id"
     collection_name = settings.QDRANT_COLLECTION_NAME
 
-    # Verify local Docker Qdrant is running before tests
     try:
-        await async_qdrant_client.get_collections()
+        await qdrant_cli.get_collections()
     except Exception:
         pytest.fail(
             "Failed to connect to local Qdrant! Start Docker database with "
@@ -69,16 +59,14 @@ async def test_end_to_end_ingestion_pipeline_success(integration_mock_markdown):
         "Splitter failed to process data into child chunks"
     )
 
-    # This step requires internet access for google-genai vector calculation
     print(
         f"-> Sending {len(prepared_points)} real integration data to Docker Qdrant..."
     )
-    await prepare_and_upload_to_qdrant(prepared_points)
+    await prepare_and_upload_to_qdrant(prepared_points, client=qdrant_cli)
 
-    # Wait briefly for Qdrant background indexing
     await asyncio.sleep(1)
 
-    search_response = await async_qdrant_client.scroll(
+    search_response = await qdrant_cli.scroll(
         collection_name=collection_name,
         scroll_filter=models.Filter(
             must=[
@@ -119,8 +107,7 @@ async def test_end_to_end_ingestion_pipeline_success(integration_mock_markdown):
         "Architecture error: Deprecated field 'bagian' detected in DB!"
     )
 
-    # Clean up test data from Docker Qdrant
-    await async_qdrant_client.delete(
+    await qdrant_cli.delete(
         collection_name=collection_name,
         points_selector=models.FilterSelector(
             filter=models.Filter(

@@ -4,9 +4,9 @@ import pytest
 import pytest_asyncio
 
 from src.database.connection import (
-    async_postgres_pool,
-    async_qdrant_client,
     close_database_connections,
+    get_postgres_pool,
+    get_qdrant_client,
     init_database_connections,
 )
 
@@ -22,7 +22,8 @@ async def db_lifespan():
 @pytest_asyncio.fixture(scope="function")
 async def pg_conn(db_lifespan):
     """Provides an isolated Postgres connection per test function."""
-    async with async_postgres_pool.connection() as conn:
+    pool = get_postgres_pool()
+    async with pool.connection() as conn:
         yield conn
         await conn.rollback()
 
@@ -30,4 +31,4 @@ async def pg_conn(db_lifespan):
 @pytest.fixture(scope="function")
 def qdrant_cli(db_lifespan):
     """Provides the Qdrant client."""
-    return async_qdrant_client
+    return get_qdrant_client()

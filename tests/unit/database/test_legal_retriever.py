@@ -154,7 +154,14 @@ async def test_qdrant_retriever_handles_embedding_and_query_errors(
 
 def test_get_default_legal_retriever_raises_when_client_uninitialized() -> None:
     with (
-        patch("src.database.legal_retriever.async_qdrant_client", None),
-        pytest.raises(RuntimeError, match="async_qdrant_client"),
+        patch("src.database.connection.async_qdrant_client", None),
+        pytest.raises(RuntimeError, match="Qdrant client is not initialized"),
     ):
         get_default_legal_retriever()
+
+
+def test_get_default_legal_retriever_success() -> None:
+    mock_client = MagicMock()
+    with patch("src.database.connection.async_qdrant_client", mock_client):
+        retriever = get_default_legal_retriever()
+        assert retriever._client is mock_client

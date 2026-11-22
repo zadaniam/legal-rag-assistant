@@ -7,10 +7,10 @@ Idle Connection Timeout.
 import asyncio
 
 from google.genai import types
-from qdrant_client import models
+from qdrant_client import AsyncQdrantClient, models
 
 from src.config import settings
-from src.database.connection import async_qdrant_client
+from src.database.connection import get_qdrant_client
 from src.database.vector_schema import (
     EmbeddingSpec,
     PreparedVectorPoint,
@@ -22,17 +22,14 @@ from src.utils.embeddings import ai_client
 
 async def prepare_and_upload_to_qdrant(
     prepared_points: list[PreparedVectorPoint],
+    client: AsyncQdrantClient | None = None,
 ) -> None:
     """Upload prepared points to Qdrant using streaming batch strategy.
 
     Embeds and uploads data in batches to avoid Idle Connection Timeout
     and respect Google Free Tier RPM limits.
     """
-    if async_qdrant_client is None:
-        raise RuntimeError(
-            "Database connection error: 'async_qdrant_client' is not initialized. "
-            "Ensure database connection pool is running before ingestion."
-        )
+    qdrant_client = client or get_qdrant_client()
 
     batch_size = 80
 
@@ -96,7 +93,7 @@ async def prepare_and_upload_to_qdrant(
             f"from batch wave {index + 1} to Qdrant Cloud..."
         )
 
-        await async_qdrant_client.upsert(
+        await qdrant_client.upsert(
             collection_name=settings.QDRANT_COLLECTION_NAME, points=qdrant_points_batch
         )
         logger.info(f"   [SUCCESS] Batch wave {index + 1} safely stored in Qdrant.")
